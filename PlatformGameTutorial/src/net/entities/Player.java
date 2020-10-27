@@ -2,7 +2,6 @@ package net.entities;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -11,7 +10,6 @@ import net.gameState.GameState;
 import net.objects.Block;
 import net.objects.CollisionLine;
 import net.objects.MovingBlock;
-import net.physics.Collision;
 
 public class Player {
 
@@ -22,18 +20,21 @@ public class Player {
 	private double moveSpeed = 5;
 	private boolean right = false;
 	private boolean left = false;
+	private boolean down = false;
 	private boolean jumping = false;
 	private boolean falling = false;
 	private double jumpSpeed = 5;
 	private double currentJumpSpeed = jumpSpeed;
 	private double maxFallSpeed = 5;
-	private double currentFallSpeed = 0.1;
+	private double currentFallSpeed = 0.2;
+	private double wallFallSpeed = 0.1;
 	private boolean wallClingRight = false;
 	private boolean wallClingLeft = false;
 	private boolean wallJumpFromRight = false;
 	private boolean wallJumpFromLeft = false;
 	private int wallJumpFrames = 10;
 	private int clungWall = 0;
+	private boolean dropable = false;
 
 	private boolean grounded = false;
 
@@ -45,9 +46,6 @@ public class Player {
 	}
 
 	public void tick(Block[][] b, ArrayList<MovingBlock> movingBlocks, ArrayList<CollisionLine> cL) {
-
-		int iX = (int) x;
-		int iY = (int) y;
 
 		// Collisions
 		/*
@@ -165,13 +163,16 @@ public class Player {
 			// System.out.println("Y: " + cL.getY());
 
 			// right
+
+			// System.out.println("currentY: " + currentY);
+			// System.out.println("currentY: " + (currentY - height));
 			if (cL.get(i).intersectsLine(rightX - (width / 2), currentY, rightX + 5, currentY) || cL.get(i)
 					.intersectsLine(rightX - (width / 2), currentY - height, rightX + 5, currentY - height)) {
 
 				// System.out.println(i);
 				// System.out.println("test right");
-				// System.out.println("slope? " + slope);
-				// System.out.println("currentY: " + currentY);
+				System.out.println("slope? " + slope);
+
 				// System.out.println(cL.get(i).y1);
 				// I think this slope formula is wrong?
 				// I think it also needs to check for greater than 1 slopes
@@ -193,13 +194,11 @@ public class Player {
 								System.out.println("movespeed: " + moveSpeed);
 								jumping = false;
 								falling = false;
-								// wallcling may be switching off before falling
-
 								GameState.yOffset--;
 								GameState.xOffset -= moveSpeed;
 								wallClingRight = true;
 								clungWall = i;
-								currentFallSpeed = 0.1;
+								wallFallSpeed = 0.1;
 								// collided = true;
 								// probably want to unwallcling around height from y1
 							}
@@ -216,6 +215,12 @@ public class Player {
 					}
 				}
 				// Downward angled slope collision
+				// This isn't covering slopes that are downward, but shallow
+				// The way slopes work when the y axis is reversed
+				// are making calculations like this very annoying.
+				// May want to check if using angles will work better.
+				// Might be inefficient though.
+
 				else if (slope >= 1) {
 					System.out.println("slope greater than 1");
 					if (right)
@@ -252,8 +257,19 @@ public class Player {
 				if ((cL.get(i).getID() != 2)) {
 					System.out.println("top collision: " + i);
 					jumping = false;
-					if (!wallClingLeft && !wallClingRight)
+					if (!wallClingLeft && !wallClingRight) {
 						falling = true;
+						jumping = false;
+					} else if (wallFallSpeed < 0.2) {
+						// TODO prevent walljumping through ceilings
+						jumping = false;
+						System.out.println("top collision test");
+						GameState.yOffset = yy - y + 1;
+					}
+					if (wallJumpFromRight || wallJumpFromLeft) {
+						wallJumpFrames = 0;
+						GameState.yOffset = yy - y + 1;
+					}
 					// collided = true;
 					// Makes roofs sticky
 					// GameState.yOffset = yy - y;
@@ -270,13 +286,16 @@ public class Player {
 					falling = false;
 					grounded = true;
 					GameState.yOffset = yy - y - 31;
+					if (cL.get(i).getID() == 2)
+						dropable = true;
 				}
 			}
 
 			else {
 				if (!grounded && !jumping && !wallClingRight) {
-					System.out.println("bottom collision");
+					// System.out.println("bottom collision");
 					falling = true;
+					dropable = false;
 				}
 			}
 		}
@@ -308,21 +327,21 @@ public class Player {
 			currentJumpSpeed = jumpSpeed;
 			GameState.yOffset += currentFallSpeed;
 			if (currentFallSpeed < maxFallSpeed) {
-				currentFallSpeed += 0.1;
+				currentFallSpeed += 0.2;
 			}
 
 		}
 		if (!falling) {
 			// increasing this may make downward collisions more consistent
 			// assuming it isn't >= 1 (maybe not who knows)
-			currentFallSpeed = 0.1;
+			currentFallSpeed = 0.2;
 		}
 		if (wallClingLeft || wallClingRight) {
-			System.out.println("wall test: " + currentFallSpeed);
+			System.out.println("wall test: " + wallFallSpeed);
 			currentJumpSpeed = jumpSpeed;
-			GameState.yOffset += currentFallSpeed;
-			if (currentFallSpeed < maxFallSpeed) {
-				currentFallSpeed += 0.1;
+			GameState.yOffset += wallFallSpeed;
+			if (wallFallSpeed < (maxFallSpeed / 2)) {
+				wallFallSpeed += 0.1;
 			}
 
 			if ((cL.get(clungWall).y1 - currentY <= 0) || (cL.get(clungWall).y2 - currentY > 0)) {
@@ -332,13 +351,21 @@ public class Player {
 
 		}
 
+		// wallJumping forcing an animation is cool for later visuals,
+		// but it is currently a little jank if you are already hitting the roof
 		if (wallJumpFromLeft) {
 			GameState.yOffset -= currentJumpSpeed;
+			GameState.xOffset += 5;
+			wallJumpFrames--;
+			if (wallJumpFrames <= 0) {
+				wallJumpFrames = 10;
+				wallJumpFromRight = false;
+			}
 			currentJumpSpeed -= 0.1;
 			if (currentJumpSpeed <= 0) {
 				currentJumpSpeed = jumpSpeed;
-				System.out.println("wallJumpFromLeft");
 				jumping = false;
+				System.out.println("wallJumpFromLeft");
 				falling = true;
 			}
 		} else if (wallJumpFromRight) {
@@ -387,7 +414,7 @@ public class Player {
 		 * 0.1; }
 		 *
 		 */
-		System.out.println(wallClingRight);
+		// System.out.println(wallClingRight);
 	}
 
 	public void draw(Graphics g) {
@@ -409,17 +436,40 @@ public class Player {
 
 			left = true;
 			wallClingRight = false;
-			System.out.println(wallClingRight);
+			// System.out.println(wallClingRight);
+		}
+		if (k == KeyEvent.VK_S) {
+			System.out.println("s");
+
+			down = true;
+			// wallClingRight = false;
+			// wallClingLeft = false;
 		}
 		if (k == KeyEvent.VK_SPACE && !jumping && !falling) {
 			jumping = true;
 			if (wallClingLeft) {
-
+				// TODO
 			} else if (wallClingRight) {
 				wallJumpFromRight = true;
 			}
 			wallClingLeft = false;
 			wallClingRight = false;
+			if ((dropable) && (down)) {
+				System.out.println("testing");
+				currentJumpSpeed = jumpSpeed;
+				GameState.yOffset += currentFallSpeed;
+				if (currentFallSpeed < maxFallSpeed) {
+					currentFallSpeed += 0.2;
+				}
+				// I'd like to make these smaller, but it currently
+				// interferes with the don't fall through the floor code.
+				// Mostly effects positive slopes (downward)
+				GameState.prevYOffset = GameState.yOffset + 6;
+				GameState.yOffset += 6;
+				falling = true;
+				jumping = false;
+				dropable = false;
+			}
 		}
 	}
 
@@ -429,6 +479,12 @@ public class Player {
 		}
 		if (k == KeyEvent.VK_A) {
 			left = false;
+		}
+		if (k == KeyEvent.VK_S) {
+			down = false;
+		}
+		if (k == KeyEvent.VK_SPACE) {
+			jumping = false;
 		}
 	}
 }
