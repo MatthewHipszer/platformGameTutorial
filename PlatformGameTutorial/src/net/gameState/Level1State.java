@@ -4,13 +4,12 @@ import java.awt.Graphics;
 
 import net.entities.Player;
 import net.maps.Map;
-import net.objects.Block;
 
 public class Level1State extends GameState {
 
 	private Player player;
 	private Map map;
-	
+
 	public Level1State(GameStateManager gsm) {
 		super(gsm);
 		// TODO Auto-generated constructor stub
@@ -18,16 +17,16 @@ public class Level1State extends GameState {
 
 	@Override
 	public void init() {
-		player = new Player(30,30);	
+		player = new Player(30,50);
 		map = new Map("/maps/map1.map");
-		
+
 		xOffset = 0;
 		yOffset = 0;
 	}
 
 	@Override
 	public void tick() {
-		player.tick(map.getBlocks(), map.getMovingBlocks(), map.getCollisionLines());
+		player.tick(map.getMovingBlocks(), map.getCollisionLines());
 		map.tick();
 	}
 

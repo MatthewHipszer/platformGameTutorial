@@ -50,31 +50,31 @@ public class Map {
 		// make sure walls are bottom(y1) to top(y2)
 		// you could code around that with a minimum check, but that seems less
 		// efficient
-		// 0 = wall
-		// 1 = floor
-		// 2 = semisolid floor
-		// 3 = downward slope
-		// 4 = upward slope
-		// 5 = ceiling
+		// 0 = wall				(angle -90)
+		// 1 = floor			(angle 0)
+		// 2 = semisolid floor	(angle 0)
+		// 3 = downward slope	(angle +)
+		// 4 = upward slope		(angle -)
+		// 5 = ceiling			(angle 0)
 		collisionLines = new ArrayList<CollisionLine>();
-		collisionLines.add(new CollisionLine(400, 100, 400, -200, 0));
-		collisionLines.add(new CollisionLine(3500, 700, 3500, 000, 0));
-		collisionLines.add(new CollisionLine(3750, 250, 3750, 000, 0));
-		collisionLines.add(new CollisionLine(4000, -490, 4000, -800, 0));
-		collisionLines.add(new CollisionLine(3500, 100, 3750, 100, 1));
-		collisionLines.add(new CollisionLine(400, 100, 600, 200, 1));
-		collisionLines.add(new CollisionLine(0, 320, 1100, 320, 1));
-		collisionLines.add(new CollisionLine(100, 200, 500, 200, 2));
-		collisionLines.add(new CollisionLine(000, 100, 400, 100, 2));
-		collisionLines.add(new CollisionLine(400, 100, 500, 200, 3));
-		collisionLines.add(new CollisionLine(800, 250, 2000, 500, 3));
-		collisionLines.add(new CollisionLine(2000, 500, 2500, 700, 3));
-		collisionLines.add(new CollisionLine(2500, 700, 2750, 900, 3));
-		collisionLines.add(new CollisionLine(200, 200, 400, 100, 4));
-		collisionLines.add(new CollisionLine(2750, 900, 3500, 700, 4));
-		collisionLines.add(new CollisionLine(3500, 700, 3750, 200, 4));
-		collisionLines.add(new CollisionLine(3750, 200, 4000, -500, 4));
-		collisionLines.add(new CollisionLine(0, -100, 3000, -100, 5));
+		collisionLines.add(new CollisionLine(400, 100, 400, -200, 0));		//0
+		collisionLines.add(new CollisionLine(3500, 700, 3500, 000, 0));		//1
+		collisionLines.add(new CollisionLine(3750, 250, 3750, 000, 0));		//2
+		collisionLines.add(new CollisionLine(4000, -490, 4000, -800, 0));	//3
+		collisionLines.add(new CollisionLine(3500, 100, 3750, 100, 1));		//4
+		collisionLines.add(new CollisionLine(400, 100, 600, 200, 3));		//5
+		collisionLines.add(new CollisionLine(0, 320, 1100, 320, 1));		//6
+		collisionLines.add(new CollisionLine(100, 200, 500, 200, 2));		//7
+		collisionLines.add(new CollisionLine(000, 100, 400, 100, 2));		//8
+		collisionLines.add(new CollisionLine(400, 100, 500, 200, 3));		//9
+		collisionLines.add(new CollisionLine(800, 250, 2000, 500, 3));		//10
+		collisionLines.add(new CollisionLine(2000, 500, 2500, 700, 3));		//11
+		collisionLines.add(new CollisionLine(2500, 700, 2750, 900, 3));		//12
+		collisionLines.add(new CollisionLine(200, 200, 400, 100, 4));		//13
+		collisionLines.add(new CollisionLine(2750, 900, 3500, 700, 4));		//14
+		collisionLines.add(new CollisionLine(3500, 700, 3750, 200, 4));		//15
+		collisionLines.add(new CollisionLine(3750, 200, 4000, -500, 4));	//16
+		collisionLines.add(new CollisionLine(0, -100, 3000, -100, 5));		//17
 
 		InputStream is = this.getClass().getResourceAsStream(loadPath);
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
