@@ -10,6 +10,7 @@ import net.gameState.GameState;
 import net.objects.Block;
 import net.objects.CollisionLine;
 import net.objects.MovingBlock;
+import net.physics.HitBox;
 
 public class Player {
 
@@ -38,11 +39,40 @@ public class Player {
 
 	private boolean grounded = false;
 
+	private HitBox hitBoxRight, hitBoxLeft, hitBoxTop, hitBoxBottom;
+	private double tempx, tempy;
+
+
+	//TODO jump can break when jumping through a semi-solid floor
 	public Player(int width, int height) {
 		x = GamePanel.WIDTH / 3;
 		y = GamePanel.HEIGHT / 2;
 		this.width = width;
 		this.height = height;
+		//The player never actually moves.
+		//Therefore these shouldn't have to move either.
+		//They don't seem to be where they are though.
+
+		//I think the problem isn't that these don't move.
+		//I think the problem is that the current collision checks
+		//use offsets in the calculations
+		//This makes it so that these boxes can't check the way that I want
+		//I need to find a way to pass these offsets for formulas.
+		//Alternatively I may be able to use temp values to store the data
+		//then move the hitbox for the check, then move the box back using
+		//the previous temp data.
+		//It sounds inefficient to me, but it may be worth a shot.
+		hitBoxLeft = new HitBox(x - 6 + (6/2), y, 6, height, 0);
+		hitBoxRight = new HitBox(x + width - (6/2), y, 6, height, 0);
+		hitBoxBottom = new HitBox(x, y + height - (6/2), width, 10, 0);
+		hitBoxTop = new HitBox(x, y - 6 + (6/2), width, 10, 0);
+
+		System.out.println("x: " + x);
+		System.out.println("y: " + y);
+		System.out.println("left box: " + hitBoxLeft.getBounds());
+		System.out.println("right box: " + hitBoxRight.getBounds());
+		System.out.println("bottom box: " + hitBoxBottom.getBounds());
+		System.out.println("top box: " + hitBoxTop.getBounds());
 	}
 
 	public void tick(Block[][] b, ArrayList<MovingBlock> movingBlocks, ArrayList<CollisionLine> cL) {
@@ -135,6 +165,13 @@ public class Player {
 		double rightX = leftX + width;
 		// boolean collided = false;
 
+		System.out.println("prevY: " + prevY);
+		System.out.println("currentY: " + currentY);
+
+
+
+
+
 		for (int i = 0; i < cL.size(); i++) {
 			// System.out.println(falling);
 			// System.out.println(currentFallSpeed);
@@ -160,18 +197,49 @@ public class Player {
 			// System.out.println("current y: " + currentY);
 			// System.out.println("minX: " + cL.getMinX());
 			// System.out.println("maxX: " + cL.getMaxX());
-			// System.out.println("Y: " + cL.getY());
+			//System.out.println("Y: ");
 
-			// right
+			/*
+			//This doesn't seem to work either
+			if (hitBoxRight.isEmpty()) {
+				System.out.println("test1");
+			}
+			else {
+				System.out.println("test2");
+			}
+			*/
+			//None of this is working
+			//System.out.println(hitBoxBottom.getBounds());
+			//System.out.println((GameState.yOffset = yy - y - 31));
+			if (cL.get(i).intersects(hitBoxRight))
+			{
+				System.out.println("hitBoxTestr");
+			}
+			if (cL.get(i).intersects(hitBoxLeft))
+			{
+				System.out.println("hitBoxTestl");
+			}
+			if (cL.get(i).intersects(hitBoxTop))
+			{
+				System.out.println("hitBoxTestt");
+			}
+			if (cL.get(i).intersects(hitBoxBottom))
+			{
+				System.out.println("hitBoxTestb");
+			}
 
-			// System.out.println("currentY: " + currentY);
-			// System.out.println("currentY: " + (currentY - height));
-			if (cL.get(i).intersectsLine(rightX - (width / 2), currentY, rightX + 5, currentY) || cL.get(i)
-					.intersectsLine(rightX - (width / 2), currentY - height, rightX + 5, currentY - height)) {
 
+			//TODO
+			/*
+			tempx = hitBoxRight.x;
+			tempy = hitBoxRight.y;
+			hitBoxRight.x = leftX + width - (6/2);
+			hitBoxRight.y = currentY - height;
+			if (cL.get(i).intersects(hitBoxRight)) {
+				System.out.println("in hitbox right");
 				// System.out.println(i);
 				// System.out.println("test right");
-				System.out.println("slope? " + slope);
+				//System.out.println("slope? " + slope);
 
 				// System.out.println(cL.get(i).y1);
 				// I think this slope formula is wrong?
@@ -185,6 +253,7 @@ public class Player {
 							System.out.println("steep slope");
 							moveSpeed = test;
 							GameState.yOffset = yy - y - 31;
+
 							// collided = true;
 						}
 						// Not quite working
@@ -195,7 +264,9 @@ public class Player {
 								jumping = false;
 								falling = false;
 								GameState.yOffset--;
+
 								GameState.xOffset -= moveSpeed;
+
 								wallClingRight = true;
 								clungWall = i;
 								wallFallSpeed = 0.1;
@@ -210,6 +281,7 @@ public class Player {
 							moveSpeed = 0.5;
 							// GameState.xOffset = xx + x;
 							GameState.yOffset = yy - y - 31 - 1;
+
 							// collided = true;
 						}
 					}
@@ -224,7 +296,10 @@ public class Player {
 				else if (slope >= 1) {
 					System.out.println("slope greater than 1");
 					if (right)
+					{
 						GameState.xOffset -= moveSpeed;
+
+					}
 				}
 
 				// may need to move this
@@ -235,6 +310,99 @@ public class Player {
 				// }
 			}
 
+			hitBoxRight.x = tempx;
+			hitBoxRight.y = tempy;
+			*/
+			// right
+
+			// System.out.println("currentY: " + currentY);
+			// System.out.println("currentY: " + (currentY - height));
+			if (cL.get(i).intersectsLine(rightX - (width / 2), currentY, rightX + 5, currentY) || cL.get(i)
+					.intersectsLine(rightX - (width / 2), currentY - height, rightX + 5, currentY - height)) {
+
+				// System.out.println(i);
+				// System.out.println("test right");
+				//System.out.println("slope? " + slope);
+
+				// System.out.println(cL.get(i).y1);
+				// I think this slope formula is wrong?
+				// I think it also needs to check for greater than 1 slopes
+				if (slope < -1) {
+					if (right) {
+						double test = moveSpeed + 2 * slope;
+						falling = false;
+						if (test >= 1) {
+							// Seems good
+							System.out.println("steep slope");
+							moveSpeed = test;
+							GameState.yOffset = yy - y - 31;
+
+							// collided = true;
+						}
+						// Not quite working
+						else if (slope < -99999) {
+							System.out.println("wall");
+							if ((right) && (!left)) {
+								System.out.println("movespeed: " + moveSpeed);
+								jumping = false;
+								falling = false;
+								GameState.yOffset--;
+
+								GameState.xOffset -= moveSpeed;
+
+								wallClingRight = true;
+								clungWall = i;
+								wallFallSpeed = 0.1;
+								// collided = true;
+								// probably want to unwallcling around height from y1
+							}
+						}
+						// Pretty good (not sure if needed, may also have slight jitter)
+						else {
+							System.out.println("very steep slope");
+							moveSpeed = 0;
+							moveSpeed = 0.5;
+							// GameState.xOffset = xx + x;
+							GameState.yOffset = yy - y - 31 - 1;
+
+							// collided = true;
+						}
+					}
+				}
+				// Downward angled slope collision
+				// This isn't covering slopes that are downward, but shallow
+				// The way slopes work when the y axis is reversed
+				// are making calculations like this very annoying.
+				// May want to check if using angles will work better.
+				// Might be inefficient though.
+
+				else if (slope >= 1) {
+					System.out.println("slope greater than 1");
+					if (right)
+					{
+						GameState.xOffset -= moveSpeed;
+
+					}
+				}
+
+				// may need to move this
+				// if (cL.get(clungWall).y1 - currentY <= 0)
+				// {
+				// System.out.println("uncling");
+				// wallClingRight = false;
+				// }
+			}
+
+			//TODO Not added yet
+			/*
+			tempx = hitBoxLeft.x;
+			tempy = hitBoxLeft.y;
+			hitBoxLeft.x = leftX - 6;
+			hitBoxLeft.y = currentY;
+
+			hitBoxLeft.x = tempx;
+			hitBoxLeft.y = tempy;
+			*/
 			// left
 			if (cL.get(i).intersectsLine(leftX, currentY, leftX - 5, currentY)
 					|| cL.get(i).intersectsLine(leftX, currentY - height, leftX - 5, currentY - height)) {
@@ -244,15 +412,22 @@ public class Player {
 				// System.out.println("slope? " + slope);
 				if (slope < -99999) {
 					if (left)
+					{
 						GameState.xOffset += moveSpeed;
+
 					// System.out.println("slope test2");
+					}
 				}
 
 			}
 
-			// Top collision
-			if (cL.get(i).intersectsLine(leftX + (width / 2), prevY - height + 5, leftX + (width / 2),
-					prevY - height - 5)) {
+			//TODO
+			/*
+			tempx = hitBoxTop.x;
+			tempy = hitBoxTop.y;
+			hitBoxTop.x = leftX;
+			hitBoxTop.y = currentY - height - (6/2);
+			if (cL.get(i).intersects(hitBoxTop)){
 				// Check if id is semisolid floor
 				if ((cL.get(i).getID() != 2)) {
 					System.out.println("top collision: " + i);
@@ -261,14 +436,15 @@ public class Player {
 						falling = true;
 						jumping = false;
 					} else if (wallFallSpeed < 0.2) {
-						// TODO prevent walljumping through ceilings
 						jumping = false;
 						System.out.println("top collision test");
 						GameState.yOffset = yy - y + 1;
+
 					}
 					if (wallJumpFromRight || wallJumpFromLeft) {
 						wallJumpFrames = 0;
 						GameState.yOffset = yy - y + 1;
+
 					}
 					// collided = true;
 					// Makes roofs sticky
@@ -277,28 +453,109 @@ public class Player {
 				}
 			}
 
+			hitBoxTop.x = tempx;
+			hitBoxTop.y = tempy;
+			*/
+			// Top collision
+						if (cL.get(i).intersectsLine(leftX + (width / 2), prevY - height + 5, leftX + (width / 2),
+								prevY - height - 5)) {
+							// Check if id is semisolid floor
+							if ((cL.get(i).getID() != 2)) {
+								System.out.println("top collision: " + i);
+								jumping = false;
+								if (!wallClingLeft && !wallClingRight) {
+									falling = true;
+									jumping = false;
+								} else if (wallFallSpeed < 0.2) {
+									// TODO prevent walljumping through ceilings
+									jumping = false;
+									System.out.println("top collision test");
+									GameState.yOffset = yy - y + 1;
+								}
+								if (wallJumpFromRight || wallJumpFromLeft) {
+									wallJumpFrames = 0;
+									GameState.yOffset = yy - y + 1;
+								}
+								// collided = true;
+								// Makes roofs sticky
+								// GameState.yOffset = yy - y;
+
+							}
+						}
+			//So for a right box check something like
+			//tempx = rightbox.x
+			//tempy = rightbox.y
+			//rightbox.x = GameState.xOffset + x(rightbox.x?) + width
+			//rightbox.y = GameState.yOffset + y(rightbox.y?)
+			//then check the intersection
+			//will need to test this with normal collision off though
+
+
+
+			//So for a right box check something like
+			//tempx = rightbox.x
+			//tempy = rightbox.y
+			//rightbox.x = GameState.xOffset + x(rightbox.x?) + width
+			//rightbox.y = GameState.yOffset + y(rightbox.y?)
+			//then check the intersection
+			//will need to test this with normal collision off though
+
+			//TODO bottom collision with hitbox
+			/*
+			tempx = hitBoxBottom.x;
+			tempy = hitBoxBottom.y;
+			hitBoxBottom.x = leftX;
+			hitBoxBottom.y = currentY - 5;
 			// Bottom collision
-			if ((cL.get(i).intersectsLine(leftX + (width / 2), prevY - 5, leftX + (width / 2), prevY + 5)) && (!jumping)
-					&& (!wallClingRight)) {
-				// System.out.println("bottom collision");
+			if (cL.get(i).intersects(hitBoxBottom) && !jumping && (!wallClingRight))
+			{
+				System.out.println("in collision bot");
 				if (cL.get(i).x1 != cL.get(i).x2) {
-					// System.out.println("test1");
 					falling = false;
 					grounded = true;
 					GameState.yOffset = yy - y - 31;
+
 					if (cL.get(i).getID() == 2)
 						dropable = true;
 				}
 			}
-
 			else {
 				if (!grounded && !jumping && !wallClingRight) {
-					// System.out.println("bottom collision");
 					falling = true;
 					dropable = false;
 				}
 			}
+			hitBoxBottom.x = tempx;
+			hitBoxBottom.y = tempy;
+			*/
+
+			// Bottom collision
+						if ((cL.get(i).intersectsLine(leftX + (width / 2), prevY - 5, leftX + (width / 2), prevY + 5)) && (!jumping)
+								&& (!wallClingRight)) {
+							// System.out.println("bottom collision");
+							if (cL.get(i).x1 != cL.get(i).x2) {
+								// System.out.println("test1");
+								falling = false;
+								grounded = true;
+								GameState.yOffset = yy - y - 31;
+								if (cL.get(i).getID() == 2)
+									dropable = true;
+							}
+						}
+
+						else {
+							if (!grounded && !jumping && !wallClingRight) {
+								// System.out.println("bottom collision");
+								falling = true;
+								dropable = false;
+							}
+						}
+
+
+
 		}
+
+
 
 		// System.out.println("prev left x: " + prevLeftX);
 		// System.out.println("left x: " + leftX);
@@ -317,10 +574,13 @@ public class Player {
 
 		if ((right) && (!wallJumpFromLeft || !wallJumpFromRight)) {
 			GameState.xOffset += moveSpeed;
+
 			moveSpeed = 5;
 		}
 		if ((left) && (!wallJumpFromLeft || !wallJumpFromRight)) {
 			GameState.xOffset -= moveSpeed;
+
+			moveSpeed = 5;
 		}
 
 		if (falling) {
@@ -340,6 +600,7 @@ public class Player {
 			System.out.println("wall test: " + wallFallSpeed);
 			currentJumpSpeed = jumpSpeed;
 			GameState.yOffset += wallFallSpeed;
+
 			if (wallFallSpeed < (maxFallSpeed / 2)) {
 				wallFallSpeed += 0.1;
 			}
@@ -355,7 +616,9 @@ public class Player {
 		// but it is currently a little jank if you are already hitting the roof
 		if (wallJumpFromLeft) {
 			GameState.yOffset -= currentJumpSpeed;
+
 			GameState.xOffset += 5;
+
 			wallJumpFrames--;
 			if (wallJumpFrames <= 0) {
 				wallJumpFrames = 10;
@@ -370,7 +633,9 @@ public class Player {
 			}
 		} else if (wallJumpFromRight) {
 			GameState.yOffset -= currentJumpSpeed;
+
 			GameState.xOffset -= 5;
+
 			wallJumpFrames--;
 			if (wallJumpFrames <= 0) {
 				wallJumpFrames = 10;
@@ -385,6 +650,7 @@ public class Player {
 			}
 		} else if (jumping) {
 			GameState.yOffset -= currentJumpSpeed;
+
 			currentJumpSpeed -= 0.1;
 			if (currentJumpSpeed <= 0) {
 				currentJumpSpeed = jumpSpeed;
@@ -420,20 +686,20 @@ public class Player {
 	public void draw(Graphics g) {
 		g.setColor(Color.BLACK);
 		g.fillRect((int) x, (int) y, width, height);
+		hitBoxRight.draw(g);
+		hitBoxLeft.draw(g);
+		hitBoxTop.draw(g);
+		hitBoxBottom.draw(g);
 
 	}
 
 	// If I hit right then left, I don't uncling from the wall
 	public void keyPressed(int k) {
 		if (k == KeyEvent.VK_D) {
-
-			System.out.println("d");
 			right = true;
 			wallClingLeft = false;
 		}
 		if (k == KeyEvent.VK_A) {
-			System.out.println("a");
-
 			left = true;
 			wallClingRight = false;
 			// System.out.println(wallClingRight);
