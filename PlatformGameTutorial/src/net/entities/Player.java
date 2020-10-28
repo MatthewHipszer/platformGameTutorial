@@ -64,8 +64,8 @@ public class Player {
 		//It sounds inefficient to me, but it may be worth a shot.
 		hitBoxLeft = new HitBox(x - 6 + (6/2), y, 6, height, 0);
 		hitBoxRight = new HitBox(x + width - (6/2), y, 6, height, 0);
-		hitBoxBottom = new HitBox(x, y + height - (6/2), width, 10, 0);
-		hitBoxTop = new HitBox(x, y - 6 + (6/2), width, 10, 0);
+		hitBoxBottom = new HitBox(x, y + height - 10, width, 13, 0);
+		hitBoxTop = new HitBox(x, y - 6 + (6/2), width, 13, 0);
 
 		System.out.println("x: " + x);
 		System.out.println("y: " + y);
@@ -165,8 +165,8 @@ public class Player {
 		double rightX = leftX + width;
 		// boolean collided = false;
 
-		System.out.println("prevY: " + prevY);
-		System.out.println("currentY: " + currentY);
+		//System.out.println("prevY: " + prevY);
+		//System.out.println("currentY: " + currentY);
 
 
 
@@ -229,12 +229,16 @@ public class Player {
 			}
 
 
-			//TODO
-			/*
+			//TODO I believe this box is placed correctly        |
+			//It doesn't handle corners that look like this well |
+			//                                                  /
+			//                                                 /
 			tempx = hitBoxRight.x;
 			tempy = hitBoxRight.y;
 			hitBoxRight.x = leftX + width - (6/2);
 			hitBoxRight.y = currentY - height;
+
+
 			if (cL.get(i).intersects(hitBoxRight)) {
 				System.out.println("in hitbox right");
 				// System.out.println(i);
@@ -312,7 +316,7 @@ public class Player {
 
 			hitBoxRight.x = tempx;
 			hitBoxRight.y = tempy;
-			*/
+
 			// right
 
 			// System.out.println("currentY: " + currentY);
@@ -394,11 +398,12 @@ public class Player {
 			}
 
 			//TODO Not added yet
+			//This should be the proper values for the box placement
 			/*
 			tempx = hitBoxLeft.x;
 			tempy = hitBoxLeft.y;
-			hitBoxLeft.x = leftX - 6;
-			hitBoxLeft.y = currentY;
+			hitBoxLeft.x = leftX - (6/2);
+			hitBoxLeft.y = currentY - height;
 
 			hitBoxLeft.x = tempx;
 			hitBoxLeft.y = tempy;
@@ -421,8 +426,12 @@ public class Player {
 
 			}
 
-			//TODO
-			/*
+
+			//TODO This appears to be in the correct spot
+			//this one also seems to just work correctly
+			//it won't let me jump when on the very steep slope
+			//but that is because the very steep slope is so steep
+			//that it goes through the top hitbox.
 			tempx = hitBoxTop.x;
 			tempy = hitBoxTop.y;
 			hitBoxTop.x = leftX;
@@ -455,7 +464,7 @@ public class Player {
 
 			hitBoxTop.x = tempx;
 			hitBoxTop.y = tempy;
-			*/
+			/*
 			// Top collision
 						if (cL.get(i).intersectsLine(leftX + (width / 2), prevY - height + 5, leftX + (width / 2),
 								prevY - height - 5)) {
@@ -482,6 +491,7 @@ public class Player {
 
 							}
 						}
+						*/
 			//So for a right box check something like
 			//tempx = rightbox.x
 			//tempy = rightbox.y
@@ -501,20 +511,25 @@ public class Player {
 			//will need to test this with normal collision off though
 
 			//TODO bottom collision with hitbox
-			/*
+			//This appears to be in the correct place as well,
+			//but it doesn't work as well as the line based hit collision
+			//needs further examination
+
+
 			tempx = hitBoxBottom.x;
 			tempy = hitBoxBottom.y;
 			hitBoxBottom.x = leftX;
-			hitBoxBottom.y = currentY - 5;
+			hitBoxBottom.y = currentY - 10;
 			// Bottom collision
-			if (cL.get(i).intersects(hitBoxBottom) && !jumping && (!wallClingRight))
+			if (cL.get(i).intersects(hitBoxBottom) && !jumping && !wallClingRight)
 			{
 				System.out.println("in collision bot");
+				//Prevents detection of a vertical line
 				if (cL.get(i).x1 != cL.get(i).x2) {
 					falling = false;
 					grounded = true;
 					GameState.yOffset = yy - y - 31;
-
+					//Allows you to drop through semi-solid floors
 					if (cL.get(i).getID() == 2)
 						dropable = true;
 				}
@@ -527,10 +542,10 @@ public class Player {
 			}
 			hitBoxBottom.x = tempx;
 			hitBoxBottom.y = tempy;
-			*/
 
+			/*
 			// Bottom collision
-						if ((cL.get(i).intersectsLine(leftX + (width / 2), prevY - 5, leftX + (width / 2), prevY + 5)) && (!jumping)
+						if ((cL.get(i).intersectsLine(leftX + (width / 2), currentY - 5, leftX + (width / 2), currentY + 5)) && (!jumping)
 								&& (!wallClingRight)) {
 							// System.out.println("bottom collision");
 							if (cL.get(i).x1 != cL.get(i).x2) {
@@ -551,7 +566,7 @@ public class Player {
 							}
 						}
 
-
+			*/
 
 		}
 
