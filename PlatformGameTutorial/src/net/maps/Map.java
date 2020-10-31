@@ -20,6 +20,7 @@ public class Map {
 	private ArrayList<MovingBlock> movingBlocks;
 	private ArrayList<CollisionLine> collisionLines;
 
+
 	public Map(String loadPath) {
 		loadMap(loadPath);
 	}

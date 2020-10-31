@@ -10,6 +10,7 @@ import net.gameState.GameState;
 import net.objects.CollisionLine;
 import net.objects.MovingBlock;
 import net.physics.HitBox;
+import net.resources.SpriteForAnimation;
 
 public class Player {
 
@@ -43,7 +44,9 @@ public class Player {
 	private HitBox hitBoxRight, hitBoxLeft, hitBoxTop, hitBoxBottom;
 	private double tempx, tempy;
 
-	// TODO jump can break when jumping through a semi-solid floor
+	//Animations
+	private SpriteForAnimation spriteForAnimationTest;
+
 	public Player(int width, int height) {
 		//Place player 1/3 of the screen to the right
 		x = GamePanel.WIDTH / 3;
@@ -53,6 +56,29 @@ public class Player {
 		this.width = width;
 		this.height = height;
 
+		//Could potentially put most of this code in the collision class.
+		//It would look a lot nicer, although I'm not sure if it would be
+		//very practical.
+
+		//The class may not really work, but it could still be good to at least
+		//put all of the collisions into a separate class? It might make the break
+		//idea bad or difficult though
+
+		//I wonder if it would be good to consider different ways to break out
+		//of the collision loops. It could improve efficiency and with good
+		//map design it shouldn't be a problem. And example of something that
+		//may be good to break is the ledge grab idea below.
+		//Or the drop through platform code. It may require more IDs such as
+		//wall with ledge vs wall that connects to ceiling, but I think it might
+		//be better. Maybe also move all the collision code into methods so that
+		//this code is nicer and more readable.
+
+
+		//TODO I'd like to add a way to climb the ledge of a wall/plateform.
+		//Walls would probably be pretty easy. I think a check for the top
+		//of the wall colliding with the right hitbox would work. Might want it
+		//to only apply if it collides near the top of the hitbox to prevent the
+		//character from warping too far on the grab.
 
 		//TODO consider changing the left and right hitBoxes to have more
 		//dead space on the bottom. This could allow for easier right/left
@@ -61,11 +87,17 @@ public class Player {
 		//just prevented you from colliding with them (Except walls), you could
 		//then use just the bottom hit detection for slopes. I think this will
 		//work much better than the current method.
+
+		//TODO if you must jump into a wall to wall cling, then you can make it
+		//so that hitting the bottom of anything removes wall clinging
 		// Create hitBoxes
 		hitBoxLeft = new HitBox(x - 6 + 6, y + 6, 6, height - 12, 0);
 		hitBoxRight = new HitBox(x + width - 6, y + 6, 6, height - 12, 0);
 		hitBoxBottom = new HitBox(x + 6, y + height - 13, width - 12, 14, 0);
 		hitBoxTop = new HitBox(x + 6, y, width - 12, 13, 0);
+
+		//Create animations
+		spriteForAnimationTest = new SpriteForAnimation(300, 275, 6, 6);
 
 		//Display values once for checking stuff purposes
 		System.out.println("x: " + x);
@@ -170,17 +202,12 @@ public class Player {
 							// Seems good
 							System.out.println("steep slope");
 							moveSpeed = test;
-							GameState.yOffset = yy - y - height - 1;
-							// collided = true;
 						}
 						//If the speed is not above a minimum use the minimum
 						else {
 							System.out.println("very steep slope");
 							moveSpeed = 1;
-							//may need to add one more - 1 to equation
-							GameState.yOffset = yy - y - height - 1;
 						}
-
 					}
 				}
 				//if this is a normal slope
@@ -188,7 +215,6 @@ public class Player {
 					System.out.println("angle < -45");
 					if (right) {
 						GameState.xOffset -= moveSpeed;
-
 					}
 				}
 				//if this is the back of a downward slope
@@ -233,6 +259,8 @@ public class Player {
 			// it won't let me jump when on the very steep slope
 			// but that is because the very steep slope is so steep
 			// that it goes through the top hitBox.
+			// Taller model has made this irrelevant for all but the
+			// steepest slopes
 			//Moves the hitBox temporarily so it can check for collisions
 			tempx = hitBoxTop.x;
 			tempy = hitBoxTop.y;
@@ -454,12 +482,14 @@ public class Player {
 	public void draw(Graphics g) {
 		//Draw the playerBox
 		g.setColor(Color.BLACK);
+
 		g.fillRect((int) x, (int) y, width, height);
 		//draw the hitBoxes
 		hitBoxRight.draw(g);
 		hitBoxLeft.draw(g);
 		hitBoxTop.draw(g);
 		hitBoxBottom.draw(g);
+		spriteForAnimationTest.draw(g);
 	}
 
 	//Key listener
