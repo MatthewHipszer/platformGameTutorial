@@ -17,7 +17,7 @@ public class Player {
 
 
 	 public enum Animation {
-	        IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMP, FALL
+	        IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMPRIGHT, JUMPLEFT, FALLRIGHT, FALLLEFT
 	    }
 
 	// Player values
@@ -127,10 +127,10 @@ public class Player {
 		hitBoxTop = new HitBox(x + 6, y, width - 12, 13, 0);
 
 		// Create animations
-		animations = new SpriteForAnimation[6];
+		animations = new SpriteForAnimation[8];
 		// This won't work if the animations are different length
 		// but for now this will work
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 8; i++) {
 			animations[i] = new SpriteForAnimation(300, 275, i, 6, 6);
 		}
 		currentAnimation = 0;
@@ -351,9 +351,6 @@ public class Player {
 					falling = false;
 					bottomCollision = true;
 
-					//TODO
-					//Causes rapid direction change when holding
-					//left and right at the same time.
 					if (facing == 0)
 					{
 						if (right)
@@ -392,6 +389,11 @@ public class Player {
 			else {
 				if (!bottomCollision && !jumping && !wallClingRight && !wallClingLeft) {
 					falling = true;
+					bottomCollision = false;
+					if (facing == 0)
+						setAnimation(Animation.FALLRIGHT);
+					else
+						setAnimation(Animation.FALLLEFT);
 					dropable = false;
 					// currentAnimation = 5;
 				}
@@ -573,6 +575,10 @@ public class Player {
 		// Wall jump code
 		if (k == KeyEvent.VK_SPACE && !jumping && !falling) {
 			jumping = true;
+			if (facing == 0)
+				setAnimation(Animation.JUMPRIGHT);
+			else
+				setAnimation(Animation.JUMPLEFT);
 			if (wallClingLeft) {
 				// TODO
 			} else if (wallClingRight) {
@@ -630,12 +636,12 @@ public class Player {
 		case RIGHT: {
 			if (left)
 			{
-				facing = 1;
+				//facing = 1;
 				currentAnimation = 1;
 			}
 			else
 			{
-				facing = 0;
+				//facing = 0;
 				currentAnimation = 2;
 			}
 			break;
@@ -643,14 +649,30 @@ public class Player {
 		case LEFT: {
 			if (right)
 			{
-				facing = 0;
+				//facing = 0;
 				currentAnimation = 0;
 			}
 			else
 			{
-				facing = 1;
+				//facing = 1;
 				currentAnimation = 3;
 			}
+			break;
+		}
+		case FALLRIGHT: {
+			currentAnimation = 4;
+			break;
+		}
+		case FALLLEFT: {
+			currentAnimation = 5;
+			break;
+		}
+		case JUMPRIGHT: {
+			currentAnimation = 6;
+			break;
+		}
+		case JUMPLEFT: {
+			currentAnimation = 7;
 			break;
 		}
 		}
