@@ -1,6 +1,5 @@
 package net.entities;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -67,34 +66,6 @@ public class Player {
 		this.width = width;
 		this.height = height;
 
-		// TODO Need to think up a better set of animation rules
-		// Falling animation in particular is annoying because it procs when gravity
-		// is working on the player, which is all the time, so I can't just set it
-		// to the falling animation when falling is true.
-		// Current animation rules:
-		// If right then right
-		// If right while left then face left
-		// If left then left
-		// If left while right then face right
-		// If right is released then face right
-		// If right is released while left then left
-		// If left is released then face left
-		// If left is released while right then right
-
-		// Possibly may need to tie these rules to movement instead of button presses
-		// Or add these rules to previous list
-		// Test of what that may look like:
-		// If x has gone up and bottomCollision = true then right
-		// If x has gone down and bottomCollision = true then left
-
-		// Could potentially put most of this code in the collision class.
-		// It would look a lot nicer, although I'm not sure if it would be
-		// very practical.
-
-		// The class may not really work, but it could still be good to at least
-		// put all of the collisions into a separate class? It might make the break
-		// idea bad or difficult though
-
 		// I wonder if it would be good to consider different ways to break out
 		// of the collision loops. It could improve efficiency and with good
 		// map design it shouldn't be a problem. And example of something that
@@ -104,10 +75,10 @@ public class Player {
 		// be better. Maybe also move all the collision code into methods so that
 		// this code is nicer and more readable.
 
-		// TODO I'd like to add a way to climb the ledge of a wall/plateform.
+		// TODO I'd like to add a way to climb the ledge of a wall/platform.
 		// Walls would probably be pretty easy. I think a check for the top
-		// of the wall colliding with the right hitbox would work. Might want it
-		// to only apply if it collides near the top of the hitbox to prevent the
+		// of the wall colliding with the right hitBox would work. Might want it
+		// to only apply if it collides near the top of the hitBox to prevent the
 		// character from warping too far on the grab.
 
 		// TODO consider changing the left and right hitBoxes to have more
@@ -158,29 +129,24 @@ public class Player {
 		for (int i = 0; i < cL.size(); i++) {
 			// Obtain slope of the line. Java doesn't care if it is undefined or NaN
 			// Therefore this does not need special checks for those here
-			double slope = (cL.get(i).y2 - cL.get(i).y1) / (cL.get(i).x2 - cL.get(i).x1);
-			double intercept = cL.get(i).y1 - (slope * cL.get(i).x1);
 			double xx = leftX + (width / 2);
-			double yy = slope * xx + intercept;
+			double yy = cL.get(i).getSlope() * xx + cL.get(i).getYIntercept();
 
 			// Obtains the angle of the line
 			// May be needed for left/right code depending on how I feel
 			// about coding slopes
 			// System.out.println("i: " + i);
-			double deltaY = cL.get(i).y2 - cL.get(i).y1;
-			double deltaX = cL.get(i).x2 - cL.get(i).x1;
 			// System.out.println("deltax: " + deltaX);
 			// System.out.println("deltay: " + deltaY);
-			double angleInDegrees = Math.atan(deltaY / deltaX) * 180 / Math.PI;
 			// System.out.println("angleInDegrees: " + angleInDegrees);
 
 			// Collisions start here
 
 			// Right collision
 			// TODO box dimmensions changed need to check placement |
-			// It doesn't handle corners that look like this well |
-			// /
-			// /
+			// It doesn't handle corners that look like this well   |
+			//                                                     /
+			//                                                    /
 			// Launches at an angle when jumping next to wall.
 			// Should be caused by the wall jump code
 			// maybe check something with right to fix this.
@@ -188,6 +154,9 @@ public class Player {
 			// that would save a decent amount of code
 
 			// Moves the hitBox temporarily so it can check for collisions
+
+			double angleInDegrees = cL.get(i).getAngle();
+
 			tempx = hitBoxRight.x;
 			tempy = hitBoxRight.y;
 			hitBoxRight.x = leftX + width - 6;
@@ -228,7 +197,7 @@ public class Player {
 					if (right) {
 						// Move slower up slopes (Need to check if recent
 						// changes have broken this)
-						double test = moveSpeed + 2 * slope;
+						double test = moveSpeed + 2 * cL.get(i).getSlope();
 						falling = false;
 						// If the speed is above a minimum
 						if (test >= 1) {
@@ -271,14 +240,85 @@ public class Player {
 			// End of right collision
 
 			// Left collision
-			// TODO box dimmensions changed need to check placement
-			/*
-			 * //Moves the hitBox temporarily so it can check for collisions tempx =
-			 * hitBoxLeft.x; tempy = hitBoxLeft.y; hitBoxLeft.x = leftX; hitBoxLeft.y =
-			 * currentY - height + 6;
-			 *
-			 * hitBoxLeft.x = tempx; hitBoxLeft.y = tempy;
-			 */
+			// TODO box dimmensions changed need to check placement|
+			//This is being worked on.                             |
+			//Can phase through walls if slopes are like this:      \
+
+
+			 //Moves the hitBox temporarily so it can check for collisions
+			tempx = hitBoxLeft.x;
+			tempy = hitBoxLeft.y;
+			hitBoxLeft.x = leftX;
+			hitBoxLeft.y =currentY - height + 6;
+
+
+			// Checks current line for collision
+						if (cL.get(i).intersects(hitBoxLeft)) {
+							System.out.println("in hitbox left");
+
+							// -90 degrees for upward wall
+							// 0 for floor
+							// negative for upward slope
+							// positive for downward slope
+
+							// If this is a wall (you can also use (id == 0) here instead)
+							if (angleInDegrees == -90) {
+								System.out.println("wall");
+								// The no left is only important for keyboards or
+								// controllers that can hit left and right at the same time
+								// If they do that without the check they can move too fast in
+								// the wrong direction
+								if ((left) && (!right)) {
+									System.out.println("movespeed: " + moveSpeed);
+									jumping = false;
+									falling = false;
+									// Move up the wall
+									GameState.yOffset--;
+									// Counteracts right movement
+									GameState.xOffset += moveSpeed;
+									wallClingLeft = true;
+									// Sets which wall is clung to
+									clungWall = i;
+									wallFallSpeed = 0.1;
+									// collided = true;
+								}
+							}
+							//TODO
+							// This should be a slightly slower than normal speed.
+							else if (angleInDegrees > 45 || angleInDegrees < 0) {
+								if (left) {
+									// Move slower up slopes (Need to check if recent
+									// changes have broken this)
+									double test = moveSpeed + -2 * cL.get(i).getSlope();
+									falling = false;
+									// If the speed is above a minimum
+									if (test >= 1) {
+										// Seems good
+										System.out.println("steep slope");
+										moveSpeed = test;
+									}
+									// If the speed is not above a minimum use the minimum
+									else {
+										System.out.println("very steep slope");
+										moveSpeed = -1;
+									}
+								}
+							}
+							// These are downward slopes
+							//Need to work out what to do here.
+							//I think the reverse of this on right slopes stops movement.
+							//It is possible this is wrong for right slopes as well.
+							else if (angleInDegrees < 0) {
+								System.out.println("angle < -45");
+								if (left) {
+									GameState.xOffset += moveSpeed;
+								}
+							}
+						}
+						// Revert values
+			hitBoxLeft.x = tempx;
+			hitBoxLeft.y = tempy;
+
 			// End of left collision
 
 			// Top collision
@@ -540,18 +580,20 @@ public class Player {
 	// Draw method
 	public void draw(Graphics g) {
 		// Draw the playerBox
-		g.setColor(Color.BLACK);
+		//g.setColor(Color.BLACK);
 
-		g.fillRect((int) x, (int) y, width, height);
+		//g.fillRect((int) x, (int) y, width, height);
+
+		// Draw the current animation
+		animations[currentAnimation].draw(g);
+
 		// Draw the hitBoxes
 		hitBoxRight.draw(g);
 		hitBoxLeft.draw(g);
 		hitBoxTop.draw(g);
 		hitBoxBottom.draw(g);
 
-		// Draw the current animation
-		animations[currentAnimation].draw(g);
-	}
+			}
 
 	// Key listener
 	public void keyPressed(int k) {
