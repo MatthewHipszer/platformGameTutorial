@@ -24,7 +24,7 @@ public class HitBox extends Rectangle2D.Double {
 	{
 
 	}
-	
+
 	public void draw (Graphics g)
 	{
 		g.setColor(Color.GREEN);

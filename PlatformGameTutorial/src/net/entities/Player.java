@@ -20,7 +20,8 @@ public class Player {
 	    }
 
 	// Player values
-	private double x, y;
+	public static double x;
+	public static double y;
 	private int width, height;
 
 	// movement
@@ -44,6 +45,7 @@ public class Player {
 	private int clungWall = 0;
 	private int dropFloor = -1;
 	private boolean dropable = false;
+	private boolean dontChangeMoveSpeedTest = false;
 
 	private boolean bottomCollision = false;
 
@@ -61,10 +63,23 @@ public class Player {
 		// Place player 1/3 of the screen to the right
 		x = GamePanel.WIDTH / 3;
 		// Place player in the middle of the screen vertically
-		y = GamePanel.HEIGHT / 2;
+		//Changed to 1/3 for map testing
+		y = GamePanel.HEIGHT / 3;
 		// Set player dimensions
 		this.width = width;
 		this.height = height;
+
+		//TODO new problems found with test map:
+		//Falling though slope shaped like this: __/
+		//Can fall off wall and have the wall fall speed instead
+		//of normal fall speed. This only seems to happen with left walls.
+		//This is likely because I haven't made the left wall cling code snippet.
+		//Can't jump while holding walking into the left wall.
+		//This is likely the same problem with the left wall cling code.
+		//All of the left code should be easy enough to fix when I decide to do it.
+		//The slope problem does need to be looked at however.
+		//Not necessarily a problem, but you run very fast down hill.
+		//Should probably make a maxSpeed variable.
 
 		// I wonder if it would be good to consider different ways to break out
 		// of the collision loops. It could improve efficiency and with good
@@ -102,7 +117,7 @@ public class Player {
 		// This won't work if the animations are different length
 		// but for now this will work
 		for (int i = 0; i < 8; i++) {
-			animations[i] = new SpriteForAnimation(300, 275, i, 6, 6);
+			animations[i] = new SpriteForAnimation((int)x, (int)y, i, 6, 6);
 		}
 		currentAnimation = 0;
 
@@ -184,7 +199,9 @@ public class Player {
 						// Move up the wall
 						GameState.yOffset--;
 						// Counteracts right movement
-						GameState.xOffset -= moveSpeed;
+						moveSpeed = 0;
+						dontChangeMoveSpeedTest = true;
+						//GameState.xOffset -= moveSpeed;
 						wallClingRight = true;
 						// Sets which wall is clung to
 						clungWall = i;
@@ -194,7 +211,7 @@ public class Player {
 				}
 				// else if it is an upward slope
 				else if (angleInDegrees < 0) {
-					if (right) {
+					if ((right) && (!dontChangeMoveSpeedTest)){
 						// Move slower up slopes (Need to check if recent
 						// changes have broken this)
 						double test = moveSpeed + 2 * cL.get(i).getSlope();
@@ -206,7 +223,7 @@ public class Player {
 							moveSpeed = test;
 						}
 						// If the speed is not above a minimum use the minimum
-						else {
+						else if (!dontChangeMoveSpeedTest){
 							System.out.println("very steep slope");
 							moveSpeed = 1;
 						}
@@ -216,7 +233,7 @@ public class Player {
 				else if (angleInDegrees < -45) {
 					System.out.println("angle < -45");
 					if (right) {
-						GameState.xOffset -= moveSpeed;
+						moveSpeed = 0;
 					}
 				}
 				// if this is the back of a downward slope
@@ -230,7 +247,7 @@ public class Player {
 						// should be very low. It is probably ok because Only stalactites or
 						// similar shapes should cause this to happen and you will resume
 						// normal movement after falling below the tip
-						GameState.xOffset -= moveSpeed;
+						moveSpeed = 0;
 					}
 				}
 			}
@@ -275,8 +292,10 @@ public class Player {
 									// Move up the wall
 									GameState.yOffset--;
 									// Counteracts right movement
-									GameState.xOffset += moveSpeed;
+									//GameState.xOffset += moveSpeed;
+									moveSpeed = 0;
 									wallClingLeft = true;
+									dontChangeMoveSpeedTest = true;
 									// Sets which wall is clung to
 									clungWall = i;
 									wallFallSpeed = 0.1;
@@ -286,7 +305,7 @@ public class Player {
 							//TODO
 							// This should be a slightly slower than normal speed.
 							else if (angleInDegrees > 45 || angleInDegrees < 0) {
-								if (left) {
+								if ((left) && (!dontChangeMoveSpeedTest)){
 									// Move slower up slopes (Need to check if recent
 									// changes have broken this)
 									double test = moveSpeed + -2 * cL.get(i).getSlope();
@@ -298,7 +317,7 @@ public class Player {
 										moveSpeed = test;
 									}
 									// If the speed is not above a minimum use the minimum
-									else {
+									else if (!dontChangeMoveSpeedTest) {
 										System.out.println("very steep slope");
 										moveSpeed = -1;
 									}
@@ -311,7 +330,8 @@ public class Player {
 							else if (angleInDegrees < 0) {
 								System.out.println("angle < -45");
 								if (left) {
-									GameState.xOffset += moveSpeed;
+									moveSpeed = 0;
+									//GameState.xOffset += moveSpeed;
 								}
 							}
 						}
@@ -443,6 +463,8 @@ public class Player {
 			// Reverts hitBox location
 			// End of bottom collision
 		} // End of collisionLine for loop
+
+		dontChangeMoveSpeedTest = false;
 
 		// switches grounded to false so
 		// that it doesn't break next frames collision checks

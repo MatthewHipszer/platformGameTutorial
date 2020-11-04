@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import net.entities.Player;
+
 public class SpriteForAnimation {
 
 	//Create the spriteSheet
@@ -47,7 +49,7 @@ public class SpriteForAnimation {
 
     //Draws the image on the current frame
 	public void draw(Graphics g) {
-		g.drawImage(sprites[currentFrame / repeatFrames], 300, 275, SPRITE_WIDTH, SPRITE_HEIGHT, null);
+		g.drawImage(sprites[currentFrame / repeatFrames], (int)Player.x, (int)Player.y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
 		if (currentFrame < (finalFrame * repeatFrames) - 1)
 			currentFrame++;
 		else
