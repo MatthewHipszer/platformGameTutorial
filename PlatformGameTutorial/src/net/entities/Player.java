@@ -69,17 +69,15 @@ public class Player {
 		this.width = width;
 		this.height = height;
 
-		//TODO new problems found with test map:
-		//Falling though slope shaped like this: __/
 		//Can fall off wall and have the wall fall speed instead
 		//of normal fall speed. This only seems to happen with left walls.
 		//This is likely because I haven't made the left wall cling code snippet.
 		//Can't jump while holding walking into the left wall.
 		//This is likely the same problem with the left wall cling code.
 		//All of the left code should be easy enough to fix when I decide to do it.
-		//The slope problem does need to be looked at however.
-		//Not necessarily a problem, but you run very fast down hill.
-		//Should probably make a maxSpeed variable.
+		//Not necessarily a problem, but you appear to run very fast down hill.
+		//You don't actually run faster horizontally, but the way the slope is
+		//you traverse it very fast vertically.
 
 		// I wonder if it would be good to consider different ways to break out
 		// of the collision loops. It could improve efficiency and with good
@@ -209,6 +207,13 @@ public class Player {
 						// collided = true;
 					}
 				}
+				// if this is a very steep slope
+				else if (angleInDegrees < -45) {
+					System.out.println("angle < -45");
+					if (right) {
+						moveSpeed = 1;
+					}
+				}
 				// else if it is an upward slope
 				else if (angleInDegrees < 0) {
 					if ((right) && (!dontChangeMoveSpeedTest)){
@@ -229,14 +234,7 @@ public class Player {
 						}
 					}
 				}
-				// if this is a normal slope
-				else if (angleInDegrees < -45) {
-					System.out.println("angle < -45");
-					if (right) {
-						moveSpeed = 0;
-					}
-				}
-				// if this is the back of a downward slope
+				// If this is the back of a downward slope
 				// This should pretty much never happen, but it could happen
 				// for downward angled roofs
 				else if (angleInDegrees > 0) {
@@ -434,8 +432,21 @@ public class Player {
 						}
 					}
 
+					System.out.println("equation: " + (yy - y - height - 1));
+					System.out.println("offset: " + GameState.yOffset);
+					System.out.println("cLTest: " + (cL.get(i).y1 - y - height - 1));
 					// Places you 1 pixel above the ground
-					GameState.yOffset = yy - y - height - 1;
+					if ((yy - y - height - 1) > cL.get(i).y1 - y - height - 1)
+					{
+						System.out.println("cLTest2");
+						GameState.yOffset = cL.get(i).y1 - y - height - 1;
+					}
+					else
+					{
+						System.out.println("cLTest3");
+						GameState.yOffset = yy - y - height - 1;
+					}
+					//GameState.yOffset = yy - y - height - 1;
 					// Allows you to drop through semi-solid floors
 					// Currently doesn't work with the new larger hitBox
 					if (cL.get(i).getID() == LineType.SEMISOLIDFLOOR) {

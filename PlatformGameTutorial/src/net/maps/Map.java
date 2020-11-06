@@ -41,9 +41,9 @@ public class Map {
 			movingBlocks.get(i).draw(g);
 		}
 		*/
-		for (int i = 0; i < collisionLines.size(); i++) {
-			collisionLines.get(i).draw(g);
-		}
+		//for (int i = 0; i < collisionLines.size(); i++) {
+		//	collisionLines.get(i).draw(g);
+		//}
 	}
 
 	public void loadMap(String loadPath) {
@@ -89,13 +89,9 @@ public class Map {
 			while (!line.equals("end")) {
 			line = br.readLine();
 
-			System.out.println("Line test: " + line);
-
 			   if (!line.equals("end")) {
 				   String[] tokens = line.split(",");
 				   LineType lineType = LineType.valueOf(tokens[4]);
-				   for (int j = 0; j < 4; j++)
-					   System.out.println("tesing map reading: " + tokens[j]);
 				   collisionLines.add(new CollisionLine(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), Integer.parseInt(tokens[3]), lineType));
 			   }
 			}
