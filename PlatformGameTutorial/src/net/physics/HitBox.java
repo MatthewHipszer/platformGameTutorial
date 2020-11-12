@@ -27,11 +27,11 @@ public class HitBox extends Rectangle2D.Double {
 
 	public void draw (Graphics g)
 	{
-		g.setColor(Color.GREEN);
-		//g.drawRect((int)x - (int)GameState.xOffset, (int)y - (int)GameState.yOffset, (int)width, (int)height);
+		if (id == 1)
+			g.setColor(Color.RED);
+		else
+			g.setColor(Color.GREEN);
 		g.drawRect((int)x, (int)y, (int)width, (int)height);
-
-
 	}
 
 	public int getID()
