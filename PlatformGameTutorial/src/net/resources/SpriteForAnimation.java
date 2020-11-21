@@ -6,14 +6,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import net.entities.Player;
-
 public class SpriteForAnimation {
 
 	//Create the spriteSheet
     private static BufferedImage spriteSheet;
     private static final int SPRITE_WIDTH = 30;
     private static final int SPRITE_HEIGHT = 50;
+    private int x;
+    private int y;
     BufferedImage sprites[];
 
     //Current frame the animation is
@@ -28,15 +28,16 @@ public class SpriteForAnimation {
 
 
     //Currently only ever does the top row of an animation
-    public SpriteForAnimation(int x, int y, int value, int frames, int repeatFrames)
+    public SpriteForAnimation(int x, int y, int value, int frames, int repeatFrames, String path)
     {
+    	this.x = x;
+    	this.y = y;
     	this.repeatFrames = repeatFrames;
     	finalFrame = frames;
     	sprites = new BufferedImage[frames];
     	spriteSheet = null;
         try {
-        	spriteSheet = ImageIO.read(getClass().getResource("/blocks/spriteTest.png"));
-            System.out.println("SpriteSheetLoaded");
+        	spriteSheet = ImageIO.read(getClass().getResource(path));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -49,7 +50,7 @@ public class SpriteForAnimation {
 
     //Draws the image on the current frame
 	public void draw(Graphics g) {
-		g.drawImage(sprites[currentFrame / repeatFrames], (int)Player.x, (int)Player.y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
+		g.drawImage(sprites[currentFrame / repeatFrames], x, y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
 		if (currentFrame < (finalFrame * repeatFrames) - 1)
 			currentFrame++;
 		else
