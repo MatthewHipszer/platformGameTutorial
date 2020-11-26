@@ -51,10 +51,14 @@ public class SpriteForAnimation {
     //Draws the image on the current frame
 	public void draw(Graphics g) {
 		g.drawImage(sprites[currentFrame / repeatFrames], x, y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
-		if (currentFrame < (finalFrame * repeatFrames) - 1)
+		if (currentFrame < (finalFrame * repeatFrames) - 2)
 			currentFrame++;
 		else
 			currentFrame = 0;
+	}
+	
+	public int getFrame() {
+		return currentFrame;
 	}
 
 }
