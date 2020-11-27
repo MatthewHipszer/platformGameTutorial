@@ -10,8 +10,8 @@ public class SpriteForAnimation {
 
 	//Create the spriteSheet
     private static BufferedImage spriteSheet;
-    private static final int SPRITE_WIDTH = 30;
-    private static final int SPRITE_HEIGHT = 50;
+    private int width;
+    private int height;
     private int x;
     private int y;
     BufferedImage sprites[];
@@ -28,10 +28,12 @@ public class SpriteForAnimation {
 
 
     //Currently only ever does the top row of an animation
-    public SpriteForAnimation(int x, int y, int value, int frames, int repeatFrames, String path)
+    public SpriteForAnimation(int x, int y, int width, int height, int value, int frames, int repeatFrames, String path)
     {
     	this.x = x;
     	this.y = y;
+    	this.width = width;
+    	this.height = height;
     	this.repeatFrames = repeatFrames;
     	finalFrame = frames;
     	sprites = new BufferedImage[frames];
@@ -43,20 +45,20 @@ public class SpriteForAnimation {
         }
         for (int i = 0; i < frames; i++)
         {
-        	sprites[i] = spriteSheet.getSubimage(i * SPRITE_WIDTH, value * SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
+        	sprites[i] = spriteSheet.getSubimage(i * width, value * height, width, height);
         }
     }
 
 
     //Draws the image on the current frame
 	public void draw(Graphics g) {
-		g.drawImage(sprites[currentFrame / repeatFrames], x, y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
+		g.drawImage(sprites[currentFrame / repeatFrames], x, y, width, height, null);
 		if (currentFrame < (finalFrame * repeatFrames) - 2)
 			currentFrame++;
 		else
 			currentFrame = 0;
 	}
-	
+
 	public int getFrame() {
 		return currentFrame;
 	}

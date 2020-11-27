@@ -15,70 +15,67 @@ import net.resources.SpriteForAnimation;
 public class Player {
 
 	public enum Animation {
-		IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMPRIGHT, JUMPLEFT, FALLRIGHT, FALLLEFT, ATTACKINGRIGHT, ATTACKINGLEFT
+		IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMPRIGHT, JUMPLEFT, FALLRIGHT, FALLLEFT,
+		ATTACKINGRIGHT, ATTACKINGLEFT, ATTACKINGJUMPRIGHT, ATTACKINGJUMPLEFT
 	}
 
 	// Player values
-	public static double x;
-	public static double y;
+	public static double x, y;
 	private int width, height;
 	private int rLPadding = 6;
 	private int uDPadding = 12;
 
-	// movement
+	// Movement
 	private double moveSpeed = 5;
 	private int facing = 0;
-	private boolean right = false;
-	private boolean left = false;
-	private boolean down = false;
-	private boolean jumping = false;
-	private boolean falling = false;
+	// Directional booleans
+	private boolean right, left, down, jumping, falling,
+	                wallClingRight, wallClingLeft, wallJumpFromRight, wallJumpFromLeft,
+	                // Misc. booleans
+	                dropable, dontChangeMoveSpeedTest, bottomCollision,
+	                attacking = false;
+
 	private double jumpSpeed = 5;
 	private double currentJumpSpeed = jumpSpeed;
 	private double maxFallSpeed = 5;
 	private double currentFallSpeed = 0.2;
 	private double wallFallSpeed = 0.1;
-	private boolean wallClingRight = false;
-	private boolean wallClingLeft = false;
-	private boolean wallJumpFromRight = false;
-	private boolean wallJumpFromLeft = false;
 	private int wallJumpFrames = 10;
 	private int clungWall = 0;
 	private int dropFloor = -1;
-	private boolean dropable = false;
-	private boolean dontChangeMoveSpeedTest = false;
-
-	private boolean bottomCollision = false;
 
 	private HitBox hitBoxRight, hitBoxLeft, hitBoxTop, hitBoxBottom;
 	private double tempx, tempy;
-	private boolean attacking = false;
 	private int attackTime = 36;
 
-	private HitBox attackBoxRight;
-	private HitBox attackBoxLeft;
-
-	// These can play the incorrect animation if you press a button while
-	// holding another button.
+	private HitBox attackBoxRight, attackBoxLeft, attackBoxJump;
 
 	// Animations
-	private SpriteForAnimation[] playerAnimations;
-	private SpriteForAnimation[] attackAnimations;
+	private SpriteForAnimation[] playerAnimations, attackAnimations;
 	private int currentPlayerAnimation;
 
 	public Player(int width, int height) {
+
 		// Place player 1/3 of the screen to the right
 		x = GamePanel.WIDTH / 3;
 		// Place player in the middle of the screen vertically
 		// Changed to 1/3 for map testing
+		// Should probably be changed back after making a real map.
 		y = GamePanel.HEIGHT / 3;
 		// Set player dimensions
 		this.width = width;
 		this.height = height;
 
-		//Has a slope to floor issue which is caused by the same problem that
-		//was causing the other slope to floor issue. Should be solvable with
-		//very similar code.
+		//Has a slope to floor issue which is caused by the same problem that    ___
+		//was causing the other slope to floor issue. Should be solvable with   /
+		//very similar code.                                                   /
+
+		//If you start falling during an attack it becomes a jump attack.
+
+		//Need to find a way to make animations accurate when they are different lengths.
+		//Could use more than one variable for attackTime, or set the attack time on attack press.
+		//Would be nice to find a way to make it simpler though, like a generic formula based
+		//on some variable from the animation itself (such as how many frames the animation has)
 
 		// Can fall off wall and have the wall fall speed instead
 		// of normal fall speed. This only seems to happen with left walls.
@@ -105,16 +102,9 @@ public class Player {
 		// to only apply if it collides near the top of the hitBox to prevent the
 		// character from warping too far on the grab.
 
-		// TODO consider changing the left and right hitBoxes to have more
-		// dead space on the bottom. This could allow for easier right/left
-		// collision detection for slopes and simplify the code for right/left
-		// collisions in general. For example, if all right/left collision code
-		// just prevented you from colliding with them (Except walls), you could
-		// then use just the bottom hit detection for slopes. I think this will
-		// work much better than the current method.
-
 		// TODO if you must jump into a wall to wall cling, then you can make it
 		// so that hitting the bottom of anything removes wall clinging
+
 		// Create hitBoxes
 		hitBoxLeft = new HitBox(x, y + rLPadding, rLPadding, height - uDPadding, 0);
 		hitBoxRight = new HitBox(x + width - rLPadding, y + rLPadding, rLPadding, height - uDPadding, 0);
@@ -129,19 +119,25 @@ public class Player {
 		// example hitBox:
 		attackBoxRight = new HitBox(x + width, y, width, height, 1);
 		attackBoxLeft = new HitBox(x - width, y, width, height, 1);
+		attackBoxJump = new HitBox(x - width - 7, y - width, 104, 104, 1);
 
 		// Create animations
-		playerAnimations = new SpriteForAnimation[10];
-		attackAnimations = new SpriteForAnimation[2];
+		playerAnimations = new SpriteForAnimation[12];
+		attackAnimations = new SpriteForAnimation[4];
 		// This won't work if the animations are different length
 		// but for now this will work
 		for (int i = 0; i < playerAnimations.length; i++) {
-			playerAnimations[i] = new SpriteForAnimation((int) x, (int) y, i, 6, 6, "/blocks/spriteTest.png");
+			playerAnimations[i] = new SpriteForAnimation((int) x, (int) y, width, height, i, 6, 6, "/blocks/spriteTest.png");
 		}
-		attackAnimations[0] = new SpriteForAnimation((int) x + width, (int) y, 0, 6, 6,
+		attackAnimations[0] = new SpriteForAnimation((int) x + width, (int) y, width, height, 0, 6, 6,
 				"/blocks/attackAnimationsTest.png");
-		attackAnimations[1] = new SpriteForAnimation((int) x - width, (int) y, 1, 6, 6,
+		attackAnimations[1] = new SpriteForAnimation((int) x - width, (int) y, width, height, 1, 6, 6,
 				"/blocks/attackAnimationsTest.png");
+		//TODO Either this or attackTime needs to be looked at to see if I can make this work better.
+		attackAnimations[2] = new SpriteForAnimation((int) x - width - 7, (int) y - width, 104, 104, 0, 8, 8,
+				"/blocks/attackAnimationsTest2.png");
+		attackAnimations[3] = new SpriteForAnimation((int) x - width - 7, (int) y - width, 104, 104, 1, 8, 8,
+				"/blocks/attackAnimationsTest2.png");
 		currentPlayerAnimation = 0;
 
 		// Display values once for checking stuff purposes
@@ -204,18 +200,38 @@ public class Player {
 
 		// g.fillRect((int) x, (int) y, width, height);
 
-		// Draw the current animation
-		playerAnimations[currentPlayerAnimation].draw(g);
+
 		if (attacking)
 		{
 			if (facing == 0)
-				attackAnimations[0].draw(g);
+			{
+				if (jumping || falling)
+				{
+					attackAnimations[2].draw(g);
+				}
+				else
+				{
+					attackAnimations[0].draw(g);
+				}
+			}
 			else
-				attackAnimations[1].draw(g);
+			{
+				if (jumping || falling)
+				{
+					attackAnimations[3].draw(g);
+				}
+				else
+				{
+					attackAnimations[1].draw(g);
+				}
+			}
 			System.out.println("attackTime: " + attackTime);
 			System.out.println("frame: " + attackAnimations[0].getFrame());
 			System.out.println("currentAnimation: " + currentPlayerAnimation);
 		}
+
+		// Draw the current animation
+		playerAnimations[currentPlayerAnimation].draw(g);
 
 		// Draw the hitBoxes
 		hitBoxRight.draw(g);
@@ -225,6 +241,7 @@ public class Player {
 
 		attackBoxRight.draw(g);
 		attackBoxLeft.draw(g);
+		attackBoxJump.draw(g);
 
 	}
 
@@ -699,32 +716,41 @@ public class Player {
 		if (k == KeyEvent.VK_J) {
 			if (attackTime == 36)
 			{
-				if (!jumping && !falling) {
 				System.out.println("Play animation");
 				attacking = true;
 				if (facing == 0)
-				setAnimation(Animation.ATTACKINGRIGHT);
-				else
-				setAnimation(Animation.ATTACKINGLEFT);
+				{
+					if (jumping || falling)
+					{
+						setAnimation(Animation.ATTACKINGJUMPRIGHT);
+					}
+					else
+					{
+						setAnimation(Animation.ATTACKINGRIGHT);
+					}
 				}
 				else
 				{
-					//TODO
-					//Jump attack animation
+					if (jumping || falling)
+					{
+						setAnimation(Animation.ATTACKINGJUMPLEFT);
+					}
+					else
+					{
+						setAnimation(Animation.ATTACKINGLEFT);
+					}
 				}
 			}
 		}
 		if (k == KeyEvent.VK_D) {
 			// System.out.println("d pressed");
 			right = true;
-			// setAnimation(2);
 			// Let go of left wall
 			wallClingLeft = false;
 		}
 		if (k == KeyEvent.VK_A) {
 			// System.out.println("a pressed");
 			left = true;
-			// setAnimation(3);
 			// Let go of right wall
 			wallClingRight = false;
 		}
@@ -767,12 +793,10 @@ public class Player {
 		if (k == KeyEvent.VK_D) {
 			// System.out.println("d released");
 			right = false;
-			// setAnimation(0);
 		}
 		if (k == KeyEvent.VK_A) {
 			// System.out.println("a released");
 			left = false;
-			// setAnimation(1);
 		}
 		if (k == KeyEvent.VK_S) {
 			down = false;
@@ -847,6 +871,14 @@ public class Player {
 		}
 		case ATTACKINGLEFT: {
 			currentPlayerAnimation = 9;
+			break;
+		}
+		case ATTACKINGJUMPRIGHT: {
+			currentPlayerAnimation = 10;
+			break;
+		}
+		case ATTACKINGJUMPLEFT: {
+			currentPlayerAnimation = 11;
 			break;
 		}
 		}
