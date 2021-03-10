@@ -15,8 +15,8 @@ import net.resources.SpriteForAnimation;
 public class Player {
 
 	public enum Animation {
-		IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMPRIGHT, JUMPLEFT, FALLRIGHT, FALLLEFT,
-		ATTACKINGRIGHT, ATTACKINGLEFT, ATTACKINGJUMPRIGHT, ATTACKINGJUMPLEFT
+		IDLERIGHT, IDLELEFT, RIGHT, LEFT, JUMPRIGHT, JUMPLEFT, FALLRIGHT, FALLLEFT, ATTACKINGRIGHT, ATTACKINGLEFT,
+		ATTACKINGJUMPRIGHT, ATTACKINGJUMPLEFT
 	}
 
 	// Player values
@@ -29,11 +29,10 @@ public class Player {
 	private double moveSpeed = 5;
 	private int facing = 0;
 	// Directional booleans
-	private boolean right, left, down, jumping, falling,
-	                wallClingRight, wallClingLeft, wallJumpFromRight, wallJumpFromLeft,
-	                // Misc. booleans
-	                dropable, dontChangeMoveSpeedTest, bottomCollision,
-	                attacking = false;
+	private boolean right, left, down, jumping, falling, wallClingRight, wallClingLeft, wallJumpFromRight,
+			wallJumpFromLeft,
+			// Misc. booleans
+			dropable, dontChangeMoveSpeedTest, bottomCollision, attacking = false;
 
 	private double jumpSpeed = 5;
 	private double currentJumpSpeed = jumpSpeed;
@@ -66,16 +65,20 @@ public class Player {
 		this.width = width;
 		this.height = height;
 
-		//Has a slope to floor issue which is caused by the same problem that    ___
-		//was causing the other slope to floor issue. Should be solvable with   /
-		//very similar code.                                                   /
+		// Has a slope to floor issue which is caused by the same problem that ___
+		// was causing the other slope to floor issue. Should be solvable with /
+		// very similar code. /
 
-		//If you start falling during an attack it becomes a jump attack.
+		// If you start falling during an attack it becomes a jump attack.
 
-		//Need to find a way to make animations accurate when they are different lengths.
-		//Could use more than one variable for attackTime, or set the attack time on attack press.
-		//Would be nice to find a way to make it simpler though, like a generic formula based
-		//on some variable from the animation itself (such as how many frames the animation has)
+		// Need to find a way to make animations accurate when they are different
+		// lengths.
+		// Could use more than one variable for attackTime, or set the attack time on
+		// attack press.
+		// Would be nice to find a way to make it simpler though, like a generic formula
+		// based
+		// on some variable from the animation itself (such as how many frames the
+		// animation has)
 
 		// Can fall off wall and have the wall fall speed instead
 		// of normal fall speed. This only seems to happen with left walls.
@@ -127,13 +130,15 @@ public class Player {
 		// This won't work if the animations are different length
 		// but for now this will work
 		for (int i = 0; i < playerAnimations.length; i++) {
-			playerAnimations[i] = new SpriteForAnimation((int) x, (int) y, width, height, i, 6, 6, "/blocks/spriteTest.png");
+			playerAnimations[i] = new SpriteForAnimation((int) x, (int) y, width, height, i, 6, 6,
+					"/blocks/spriteTest.png");
 		}
 		attackAnimations[0] = new SpriteForAnimation((int) x + width, (int) y, width, height, 0, 6, 6,
 				"/blocks/attackAnimationsTest.png");
 		attackAnimations[1] = new SpriteForAnimation((int) x - width, (int) y, width, height, 1, 6, 6,
 				"/blocks/attackAnimationsTest.png");
-		//TODO Either this or attackTime needs to be looked at to see if I can make this work better.
+		// TODO Either this or attackTime needs to be looked at to see if I can make
+		// this work better.
 		attackAnimations[2] = new SpriteForAnimation((int) x - width - 7, (int) y - width, 104, 104, 0, 8, 8,
 				"/blocks/attackAnimationsTest2.png");
 		attackAnimations[3] = new SpriteForAnimation((int) x - width - 7, (int) y - width, 104, 104, 1, 8, 8,
@@ -200,28 +205,17 @@ public class Player {
 
 		// g.fillRect((int) x, (int) y, width, height);
 
-
-		if (attacking)
-		{
-			if (facing == 0)
-			{
-				if (jumping || falling)
-				{
+		if (attacking) {
+			if (facing == 0) {
+				if (jumping || falling) {
 					attackAnimations[2].draw(g);
-				}
-				else
-				{
+				} else {
 					attackAnimations[0].draw(g);
 				}
-			}
-			else
-			{
-				if (jumping || falling)
-				{
+			} else {
+				if (jumping || falling) {
 					attackAnimations[3].draw(g);
-				}
-				else
-				{
+				} else {
 					attackAnimations[1].draw(g);
 				}
 			}
@@ -246,8 +240,6 @@ public class Player {
 	}
 
 	private void checkLineCollisions(double leftX, double currentY, ArrayList<CollisionLine> cL) {
-		// TODO Auto-generated method stub
-
 		// Obtain calculations of where the player actually
 		// appears because they do not actually move
 		// Also helps with the hitBoxes which also do not move
@@ -272,7 +264,6 @@ public class Player {
 			// Collisions start here
 
 			// Right collision
-			// TODO box dimmensions changed need to check placement |
 			// It doesn't handle corners that look like this well |
 			// /
 			// /
@@ -286,6 +277,10 @@ public class Player {
 
 			double angleInDegrees = cL.get(i).getAngle();
 
+
+			//------------------------------------------------------------------------------------------------------
+			//|                                    RIGHT HIT BOX                                                   |
+			//------------------------------------------------------------------------------------------------------
 			tempx = hitBoxRight.x;
 			tempy = hitBoxRight.y;
 			hitBoxRight.x = leftX + width - rLPadding;
@@ -370,8 +365,13 @@ public class Player {
 			hitBoxRight.y = tempy;
 			// End of right collision
 
+
+			//------------------------------------------------------------------------------------------------------
+			//|                                    LEFT HIT BOX                                                    |
+			//------------------------------------------------------------------------------------------------------
+
+
 			// Left collision
-			// TODO box dimmensions changed need to check placement|
 			// This is being worked on. |
 			// Can phase through walls if slopes are like this: \
 
@@ -414,7 +414,7 @@ public class Player {
 						// collided = true;
 					}
 				}
-				// TODO
+
 				// This should be a slightly slower than normal speed.
 				else if (angleInDegrees > 45 || angleInDegrees < 0) {
 					if ((left) && (!dontChangeMoveSpeedTest)) {
@@ -453,8 +453,12 @@ public class Player {
 
 			// End of left collision
 
+			//------------------------------------------------------------------------------------------------------
+			//|                                     TOP HIT BOX                                                    |
+			//------------------------------------------------------------------------------------------------------
+
+
 			// Top collision
-			// TODO box dimmensions changed need to check placement
 			// this one also seems to just work correctly
 			// it won't let me jump when on the very steep slope
 			// but that is because the very steep slope is so steep
@@ -504,7 +508,11 @@ public class Player {
 			// Reverts hitBox location
 			// End of top collision
 
-			// TODO box dimmensions changed need to check placement
+			//------------------------------------------------------------------------------------------------------
+			//|                                   BOTTOM HIT BOX                                                   |
+			//------------------------------------------------------------------------------------------------------
+
+			// When an upward slope is followed by a downward slope you get stuck at the peak.
 			// Bottom collision
 			// Moves the hitBox temporarily so it can check for collisions
 			tempx = hitBoxBottom.x;
@@ -515,49 +523,43 @@ public class Player {
 			// Also makes sure that you aren't jumping so that
 			// it doesn't just suck you to the ground when you try to jump
 			if (cL.get(i).intersects(hitBoxBottom) && !jumping) {
+				// prevents an issue with two lines like this __
+				// /
+				if (!((yy - y - height - 1) < cL.get(i).y2 - y - height - 1)) {
+
+					// Reverts jump speed to normal so you can jump properly
+					currentJumpSpeed = jumpSpeed;
+					// Makes sure the collision isn't a wall
+					if (cL.get(i).x1 != cL.get(i).x2) {
+						System.out.println("Collision code block 1");
+						groundCollisionCode(cL, i);
+					}
+				}
+
+				// prevents an issue with two lines like this __/
+				// Places you 1 pixel above the ground
+				if ((yy - y - height - 1) > cL.get(i).y1 - y - height - 1) {
+					// Reverts jump speed to normal so you can jump properly
+					currentJumpSpeed = jumpSpeed;
+					// Makes sure the collision isn't a wall
+					if (cL.get(i).x1 != cL.get(i).x2) {
+						System.out.println("Collision code block 2");
+						groundCollisionCode(cL, i);
+					}
+					// System.out.println("cLTest2");
+					GameState.yOffset = cL.get(i).y1 - y - height - 1;
+				}
+
 				// Reverts jump speed to normal so you can jump properly
 				currentJumpSpeed = jumpSpeed;
 				// Makes sure the collision isn't a wall
 				if (cL.get(i).x1 != cL.get(i).x2) {
-					// Says you aren't falling
-					falling = false;
-					bottomCollision = true;
-
-					if (!attacking) {
-						if (facing == 0) {
-							if (right) {
-								setAnimation(Animation.RIGHT);
-							} else {
-								setAnimation(Animation.IDLERIGHT);
-							}
-						} else {
-							if (left) {
-								setAnimation(Animation.LEFT);
-							} else {
-								setAnimation(Animation.IDLELEFT);
-							}
-						}
-					}
-
-					// System.out.println("equation: " + (yy - y - height - 1));
-					// System.out.println("offset: " + GameState.yOffset);
-					// System.out.println("cLTest: " + (cL.get(i).y1 - y - height - 1));
-					// Places you 1 pixel above the ground
-					if ((yy - y - height - 1) > cL.get(i).y1 - y - height - 1) {
-						// System.out.println("cLTest2");
-						GameState.yOffset = cL.get(i).y1 - y - height - 1;
-					} else {
-						// System.out.println("cLTest3");
-						GameState.yOffset = yy - y - height - 1;
-					}
-					// GameState.yOffset = yy - y - height - 1;
-					// Allows you to drop through semi-solid floors
-					// Currently doesn't work with the new larger hitBox
-					if (cL.get(i).getID() == LineType.SEMISOLIDFLOOR) {
-						dropable = true;
-						dropFloor = i;
-					}
+					System.out.println("Collision code block 3");
+					groundCollisionCode(cL, i);
 				}
+				// System.out.println("cLTest3");
+				GameState.yOffset = yy - y - height - 1;
+
 			}
 			// If you aren't currently standing somewhere, jumping, or clinging to
 			// a wall this will turn on gravity
@@ -565,12 +567,11 @@ public class Player {
 				if (!bottomCollision && !jumping && !wallClingRight && !wallClingLeft) {
 					falling = true;
 					bottomCollision = false;
-					if (!attacking)
-					{
-					if (facing == 0)
-						setAnimation(Animation.FALLRIGHT);
-					else
-						setAnimation(Animation.FALLLEFT);
+					if (!attacking) {
+						if (facing == 0)
+							setAnimation(Animation.FALLRIGHT);
+						else
+							setAnimation(Animation.FALLLEFT);
 					}
 					dropable = false;
 					// currentAnimation = 5;
@@ -584,8 +585,37 @@ public class Player {
 
 	}
 
+	private void groundCollisionCode(ArrayList<CollisionLine> cL, int i) {
+		// Says you aren't falling
+		falling = false;
+		bottomCollision = true;
+
+		// GameState.yOffset = yy - y - height - 1;
+		// Allows you to drop through semi-solid floors
+		// Currently doesn't work with the new larger hitBox
+		if (cL.get(i).getID() == LineType.SEMISOLIDFLOOR) {
+			dropable = true;
+			dropFloor = i;
+		}
+
+		if (!attacking) {
+			if (facing == 0) {
+				if (right) {
+					setAnimation(Animation.RIGHT);
+				} else {
+					setAnimation(Animation.IDLERIGHT);
+				}
+			} else {
+				if (left) {
+					setAnimation(Animation.LEFT);
+				} else {
+					setAnimation(Animation.IDLELEFT);
+				}
+			}
+		}
+	}
+
 	private void changePosition(double currentY, ArrayList<CollisionLine> cL) {
-		// TODO Auto-generated method stub
 		// If you are moving right and not in a wallJump
 		if ((right) && (!wallJumpFromLeft || !wallJumpFromRight)) {
 
@@ -714,29 +744,19 @@ public class Player {
 	// Key listener
 	public void keyPressed(int k) {
 		if (k == KeyEvent.VK_J) {
-			if (attackTime == 36)
-			{
+			if (attackTime == 36) {
 				System.out.println("Play animation");
 				attacking = true;
-				if (facing == 0)
-				{
-					if (jumping || falling)
-					{
+				if (facing == 0) {
+					if (jumping || falling) {
 						setAnimation(Animation.ATTACKINGJUMPRIGHT);
-					}
-					else
-					{
+					} else {
 						setAnimation(Animation.ATTACKINGRIGHT);
 					}
-				}
-				else
-				{
-					if (jumping || falling)
-					{
+				} else {
+					if (jumping || falling) {
 						setAnimation(Animation.ATTACKINGJUMPLEFT);
-					}
-					else
-					{
+					} else {
 						setAnimation(Animation.ATTACKINGLEFT);
 					}
 				}
@@ -883,5 +903,4 @@ public class Player {
 		}
 		}
 	}
-
 }
