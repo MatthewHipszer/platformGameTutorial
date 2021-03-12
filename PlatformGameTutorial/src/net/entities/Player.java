@@ -253,335 +253,348 @@ public class Player {
 			double xx = leftX + (width / 2);
 			double yy = cL.get(i).getSlope() * xx + cL.get(i).getYIntercept();
 
-			// Obtains the angle of the line
-			// May be needed for left/right code depending on how I feel
-			// about coding slopes
-			// System.out.println("i: " + i);
-			// System.out.println("deltax: " + deltaX);
-			// System.out.println("deltay: " + deltaY);
-			// System.out.println("angleInDegrees: " + angleInDegrees);
-
-			// Collisions start here
-
-			// Right collision
-			// It doesn't handle corners that look like this well |
-			// /
-			// /
-			// Launches at an angle when jumping next to wall.
-			// Should be caused by the wall jump code
-			// maybe check something with right to fix this.
-			// or just have wall jumps not be different to normal jumps
-			// that would save a decent amount of code
-
-			// Moves the hitBox temporarily so it can check for collisions
-
 			double angleInDegrees = cL.get(i).getAngle();
 
-
-			//------------------------------------------------------------------------------------------------------
-			//|                                    RIGHT HIT BOX                                                   |
-			//------------------------------------------------------------------------------------------------------
-			tempx = hitBoxRight.x;
-			tempy = hitBoxRight.y;
-			hitBoxRight.x = leftX + width - rLPadding;
-			hitBoxRight.y = currentY - height + rLPadding;
-			// Checks current line for collision
-			if (cL.get(i).intersects(hitBoxRight)) {
-				System.out.println("in hitbox right");
-
-				// -90 degrees for upward wall
-				// 0 for floor
-				// negative for upward slope
-				// positive for downward slope
-
-				// If this is a wall (you can also use (id == 0) here instead)
-				if (angleInDegrees == -90) {
-					System.out.println("wall");
-					// The no left is only important for keyboards or
-					// controllers that can hit left and right at the same time
-					// If they do that without the check they can move too fast in
-					// the wrong direction
-					if ((right) && (!left)) {
-						System.out.println("movespeed: " + moveSpeed);
-						jumping = false;
-						falling = false;
-						// Move up the wall
-						GameState.yOffset--;
-						// Counteracts right movement
-						moveSpeed = 0;
-						dontChangeMoveSpeedTest = true;
-						// GameState.xOffset -= moveSpeed;
-						wallClingRight = true;
-						// Sets which wall is clung to
-						clungWall = i;
-						wallFallSpeed = 0.1;
-						// collided = true;
-					}
-				}
-				// if this is a very steep slope
-				else if (angleInDegrees < -45) {
-					System.out.println("angle < -45");
-					if (right) {
-						moveSpeed = 1;
-					}
-				}
-				// else if it is an upward slope
-				else if (angleInDegrees < 0) {
-					if ((right) && (!dontChangeMoveSpeedTest)) {
-						// Move slower up slopes (Need to check if recent
-						// changes have broken this)
-						double test = moveSpeed + 2 * cL.get(i).getSlope();
-						falling = false;
-						// If the speed is above a minimum
-						if (test >= 1) {
-							// Seems good
-							System.out.println("steep slope");
-							moveSpeed = test;
-						}
-						// If the speed is not above a minimum use the minimum
-						else if (!dontChangeMoveSpeedTest) {
-							System.out.println("very steep slope");
-							moveSpeed = 1;
-						}
-					}
-				}
-				// If this is the back of a downward slope
-				// This should pretty much never happen, but it could happen
-				// for downward angled roofs
-				else if (angleInDegrees > 0) {
-					System.out.println(">0");
-					if (right) {
-						// This may be too harsh to stop movement completely
-						// Although the chance of this happening instead of topCollision
-						// should be very low. It is probably ok because Only stalactites or
-						// similar shapes should cause this to happen and you will resume
-						// normal movement after falling below the tip
-						moveSpeed = 0;
-					}
-				}
+			switch (cL.get(i).getID()) {
+			case WALL: {
+				rightHitBoxCode(cL, i, leftX, currentY, angleInDegrees);
+				leftHitBoxCode(cL, i, leftX, currentY, angleInDegrees);
 			}
-			// Revert values
-			hitBoxRight.x = tempx;
-			hitBoxRight.y = tempy;
-			// End of right collision
-
-
-			//------------------------------------------------------------------------------------------------------
-			//|                                    LEFT HIT BOX                                                    |
-			//------------------------------------------------------------------------------------------------------
-
-
-			// Left collision
-			// This is being worked on. |
-			// Can phase through walls if slopes are like this: \
-
-			// Moves the hitBox temporarily so it can check for collisions
-			tempx = hitBoxLeft.x;
-			tempy = hitBoxLeft.y;
-			hitBoxLeft.x = leftX;
-			hitBoxLeft.y = currentY - height + rLPadding;
-
-			// Checks current line for collision
-			if (cL.get(i).intersects(hitBoxLeft)) {
-				System.out.println("in hitbox left");
-
-				// -90 degrees for upward wall
-				// 0 for floor
-				// negative for upward slope
-				// positive for downward slope
-
-				// If this is a wall (you can also use (id == 0) here instead)
-				if (angleInDegrees == -90) {
-					System.out.println("wall");
-					// The no left is only important for keyboards or
-					// controllers that can hit left and right at the same time
-					// If they do that without the check they can move too fast in
-					// the wrong direction
-					if ((left) && (!right)) {
-						System.out.println("movespeed: " + moveSpeed);
-						jumping = false;
-						falling = false;
-						// Move up the wall
-						GameState.yOffset--;
-						// Counteracts right movement
-						// GameState.xOffset += moveSpeed;
-						moveSpeed = 0;
-						wallClingLeft = true;
-						dontChangeMoveSpeedTest = true;
-						// Sets which wall is clung to
-						clungWall = i;
-						wallFallSpeed = 0.1;
-						// collided = true;
-					}
-				}
-
-				// This should be a slightly slower than normal speed.
-				else if (angleInDegrees > 45 || angleInDegrees < 0) {
-					if ((left) && (!dontChangeMoveSpeedTest)) {
-						// Move slower up slopes (Need to check if recent
-						// changes have broken this)
-						double test = moveSpeed + -2 * cL.get(i).getSlope();
-						falling = false;
-						// If the speed is above a minimum
-						if (test >= 1) {
-							// Seems good
-							System.out.println("steep slope");
-							moveSpeed = test;
-						}
-						// If the speed is not above a minimum use the minimum
-						else if (!dontChangeMoveSpeedTest) {
-							System.out.println("very steep slope");
-							moveSpeed = -1;
-						}
-					}
-				}
-				// These are downward slopes
-				// Need to work out what to do here.
-				// I think the reverse of this on right slopes stops movement.
-				// It is possible this is wrong for right slopes as well.
-				else if (angleInDegrees < 0) {
-					System.out.println("angle < -45");
-					if (left) {
-						moveSpeed = 0;
-						// GameState.xOffset += moveSpeed;
-					}
-				}
+			case FLOOR: {
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy);
 			}
-			// Revert values
-			hitBoxLeft.x = tempx;
-			hitBoxLeft.y = tempy;
+			case SEMISOLIDFLOOR: {
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy);
+			}
+			case DOWNWARDSLOPE: {
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy);
+			}
+			case UPWARDSLOPE: {
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy);
+			}
+			case CEILING: {
+				topHitBoxCode(cL, i, leftX, currentY);
+			}
+			}
+		} // End of collisionLine for loop
 
-			// End of left collision
+	}
 
-			//------------------------------------------------------------------------------------------------------
-			//|                                     TOP HIT BOX                                                    |
-			//------------------------------------------------------------------------------------------------------
+	private void topHitBoxCode(ArrayList<CollisionLine> cL, int i, double leftX, double currentY) {
+		// ------------------------------------------------------------------------------------------------------
+		// | TOP HIT BOX |
+		// ------------------------------------------------------------------------------------------------------
 
-
-			// Top collision
-			// this one also seems to just work correctly
-			// it won't let me jump when on the very steep slope
-			// but that is because the very steep slope is so steep
-			// that it goes through the top hitBox.
-			// Taller model has made this irrelevant for all but the
-			// steepest slopes
-			// Moves the hitBox temporarily so it can check for collisions
-			tempx = hitBoxTop.x;
-			tempy = hitBoxTop.y;
-			hitBoxTop.x = leftX + rLPadding;
-			hitBoxTop.y = currentY - height;
-			// Checks current line for collision
-			if (cL.get(i).intersects(hitBoxTop)) {
-				// Check if id is semi-solid floor
-				if ((cL.get(i).getID() != LineType.SEMISOLIDFLOOR)) {
-					System.out.println("top collision: " + i);
+		// Top collision
+		// this one also seems to just work correctly
+		// it won't let me jump when on the very steep slope
+		// but that is because the very steep slope is so steep
+		// that it goes through the top hitBox.
+		// Taller model has made this irrelevant for all but the
+		// steepest slopes
+		// Moves the hitBox temporarily so it can check for collisions
+		tempx = hitBoxTop.x;
+		tempy = hitBoxTop.y;
+		hitBoxTop.x = leftX + rLPadding;
+		hitBoxTop.y = currentY - height;
+		// Checks current line for collision
+		if (cL.get(i).intersects(hitBoxTop)) {
+			// Check if id is semi-solid floor
+			if ((cL.get(i).getID() != LineType.SEMISOLIDFLOOR)) {
+				System.out.println("top collision: " + i);
+				jumping = false;
+				// If you aren't wall clinging
+				if (!wallClingLeft && !wallClingRight) {
+					// Start falling and stop jumping on collision
+					falling = true;
 					jumping = false;
-					// If you aren't wall clinging
-					if (!wallClingLeft && !wallClingRight) {
-						// Start falling and stop jumping on collision
-						falling = true;
-						jumping = false;
-					}
-					// This will enter here if you are not sliding down a wall
-					else if (wallFallSpeed < 0.2) {
-						// Don't allow them to climb through the wall
-						GameState.yOffset = GameState.prevYOffset;
-					}
-					// If you are wall jumping
-					if (wallJumpFromRight || wallJumpFromLeft) {
-						// You are no longer wall jumping
-						wallJumpFrames = 0;
-						// Prevent you from jumping through the wall
-						GameState.yOffset += currentJumpSpeed;
-						// The current way that wall jumping works allows you to
-						// very slightly clip through the roof at a set distance
-						// This should be changed
-
-					}
-					// collided = true;
-					// Makes roofs sticky
-					// GameState.yOffset = yy - y;
 				}
+				// This will enter here if you are not sliding down a wall
+				else if (wallFallSpeed < 0.2) {
+					// Don't allow them to climb through the wall
+					GameState.yOffset = GameState.prevYOffset;
+				}
+				// If you are wall jumping
+				if (wallJumpFromRight || wallJumpFromLeft) {
+					// You are no longer wall jumping
+					wallJumpFrames = 0;
+					// Prevent you from jumping through the wall
+					GameState.yOffset += currentJumpSpeed;
+					// The current way that wall jumping works allows you to
+					// very slightly clip through the roof at a set distance
+					// This should be changed
+
+				}
+				// collided = true;
+				// Makes roofs sticky
+				// GameState.yOffset = yy - y;
 			}
-			hitBoxTop.x = tempx;
-			hitBoxTop.y = tempy;
-			// Reverts hitBox location
-			// End of top collision
+		}
+		hitBoxTop.x = tempx;
+		hitBoxTop.y = tempy;
+		// Reverts hitBox location
+		// End of top collision
 
-			//------------------------------------------------------------------------------------------------------
-			//|                                   BOTTOM HIT BOX                                                   |
-			//------------------------------------------------------------------------------------------------------
+	}
 
-			// When an upward slope is followed by a downward slope you get stuck at the peak.
-			// Bottom collision
-			// Moves the hitBox temporarily so it can check for collisions
-			tempx = hitBoxBottom.x;
-			tempy = hitBoxBottom.y;
-			hitBoxBottom.x = leftX + rLPadding;
-			hitBoxBottom.y = currentY - (uDPadding + 1);
-			// Checks current line for collision
-			// Also makes sure that you aren't jumping so that
-			// it doesn't just suck you to the ground when you try to jump
-			if (cL.get(i).intersects(hitBoxBottom) && !jumping) {
-				// prevents an issue with two lines like this __
-				// /
-				if (!((yy - y - height - 1) < cL.get(i).y2 - y - height - 1)) {
+	private void bottomHitBoxCode(ArrayList<CollisionLine> cL, int i, double leftX, double currentY,
+			double angleInDegrees, double yy) {
+		// ------------------------------------------------------------------------------------------------------
+		// | BOTTOM HIT BOX |
+		// ------------------------------------------------------------------------------------------------------
 
-					// Reverts jump speed to normal so you can jump properly
-					currentJumpSpeed = jumpSpeed;
-					// Makes sure the collision isn't a wall
-					if (cL.get(i).x1 != cL.get(i).x2) {
-						System.out.println("Collision code block 1");
-						groundCollisionCode(cL, i);
-					}
-				}
-
-				// prevents an issue with two lines like this __/
-				// Places you 1 pixel above the ground
-				if ((yy - y - height - 1) > cL.get(i).y1 - y - height - 1) {
-					// Reverts jump speed to normal so you can jump properly
-					currentJumpSpeed = jumpSpeed;
-					// Makes sure the collision isn't a wall
-					if (cL.get(i).x1 != cL.get(i).x2) {
-						System.out.println("Collision code block 2");
-						groundCollisionCode(cL, i);
-					}
-					// System.out.println("cLTest2");
-					GameState.yOffset = cL.get(i).y1 - y - height - 1;
-				}
+		// When an upward slope is followed by a downward slope you get stuck at the
+		// peak.
+		// Bottom collision
+		// Moves the hitBox temporarily so it can check for collisions
+		tempx = hitBoxBottom.x;
+		tempy = hitBoxBottom.y;
+		hitBoxBottom.x = leftX + rLPadding;
+		hitBoxBottom.y = currentY - (uDPadding + 1);
+		// Checks current line for collision
+		// Also makes sure that you aren't jumping so that
+		// it doesn't just suck you to the ground when you try to jump
+		if (cL.get(i).intersects(hitBoxBottom) && !jumping) {
+			// prevents an issue with two lines like this __
+			// /
+			if (!((yy - y - height - 1) < cL.get(i).y2 - y - height - 1)) {
 
 				// Reverts jump speed to normal so you can jump properly
 				currentJumpSpeed = jumpSpeed;
 				// Makes sure the collision isn't a wall
 				if (cL.get(i).x1 != cL.get(i).x2) {
-					System.out.println("Collision code block 3");
+					System.out.println("Collision code block 1");
 					groundCollisionCode(cL, i);
 				}
-				// System.out.println("cLTest3");
-				GameState.yOffset = yy - y - height - 1;
-
 			}
-			// If you aren't currently standing somewhere, jumping, or clinging to
-			// a wall this will turn on gravity
-			else {
-				if (!bottomCollision && !jumping && !wallClingRight && !wallClingLeft) {
-					falling = true;
-					bottomCollision = false;
-					if (!attacking) {
-						if (facing == 0)
-							setAnimation(Animation.FALLRIGHT);
-						else
-							setAnimation(Animation.FALLLEFT);
-					}
-					dropable = false;
-					// currentAnimation = 5;
+
+			// prevents an issue with two lines like this __/
+			// Places you 1 pixel above the ground
+			if ((yy - y - height - 1) > cL.get(i).y1 - y - height - 1) {
+				// Reverts jump speed to normal so you can jump properly
+				currentJumpSpeed = jumpSpeed;
+				// Makes sure the collision isn't a wall
+				if (cL.get(i).x1 != cL.get(i).x2) {
+					System.out.println("Collision code block 2");
+					groundCollisionCode(cL, i);
+				}
+				// System.out.println("cLTest2");
+				GameState.yOffset = cL.get(i).y1 - y - height - 1;
+			}
+
+			// Reverts jump speed to normal so you can jump properly
+			currentJumpSpeed = jumpSpeed;
+			// Makes sure the collision isn't a wall
+			if (cL.get(i).x1 != cL.get(i).x2) {
+				System.out.println("Collision code block 3");
+				groundCollisionCode(cL, i);
+			}
+			// System.out.println("cLTest3");
+			GameState.yOffset = yy - y - height - 1;
+
+		}
+		// If you aren't currently standing somewhere, jumping, or clinging to
+		// a wall this will turn on gravity
+		else {
+			if (!bottomCollision && !jumping && !wallClingRight && !wallClingLeft) {
+				falling = true;
+				bottomCollision = false;
+				if (!attacking) {
+					if (facing == 0)
+						setAnimation(Animation.FALLRIGHT);
+					else
+						setAnimation(Animation.FALLLEFT);
+				}
+				dropable = false;
+				// currentAnimation = 5;
+			}
+		}
+		hitBoxBottom.x = tempx;
+		hitBoxBottom.y = tempy;
+		// Reverts hitBox location
+		// End of bottom collision
+
+	}
+
+	private void leftHitBoxCode(ArrayList<CollisionLine> cL, int i, double leftX, double currentY,
+			double angleInDegrees) {
+		// ------------------------------------------------------------------------------------------------------
+		// | LEFT HIT BOX |
+		// ------------------------------------------------------------------------------------------------------
+
+		// Left collision
+		// This is being worked on. |
+		// Can phase through walls if slopes are like this: \
+
+		// Moves the hitBox temporarily so it can check for collisions
+		tempx = hitBoxLeft.x;
+		tempy = hitBoxLeft.y;
+		hitBoxLeft.x = leftX;
+		hitBoxLeft.y = currentY - height + rLPadding;
+
+		// Checks current line for collision
+		if (cL.get(i).intersects(hitBoxLeft)) {
+			System.out.println("in hitbox left");
+
+			// -90 degrees for upward wall
+			// 0 for floor
+			// negative for upward slope
+			// positive for downward slope
+
+			// If this is a wall (you can also use (id == 0) here instead)
+			if (angleInDegrees == -90) {
+				System.out.println("wall");
+				// The no left is only important for keyboards or
+				// controllers that can hit left and right at the same time
+				// If they do that without the check they can move too fast in
+				// the wrong direction
+				if ((left) && (!right)) {
+					System.out.println("movespeed: " + moveSpeed);
+					jumping = false;
+					falling = false;
+					// Move up the wall
+					GameState.yOffset--;
+					// Counteracts right movement
+					// GameState.xOffset += moveSpeed;
+					moveSpeed = 0;
+					wallClingLeft = true;
+					dontChangeMoveSpeedTest = true;
+					// Sets which wall is clung to
+					clungWall = i;
+					wallFallSpeed = 0.1;
+					// collided = true;
 				}
 			}
-			hitBoxBottom.x = tempx;
-			hitBoxBottom.y = tempy;
-			// Reverts hitBox location
-			// End of bottom collision
-		} // End of collisionLine for loop
+
+			// This should be a slightly slower than normal speed.
+			else if (angleInDegrees > 45 || angleInDegrees < 0) {
+				if ((left) && (!dontChangeMoveSpeedTest)) {
+					// Move slower up slopes (Need to check if recent
+					// changes have broken this)
+					double test = moveSpeed + -2 * cL.get(i).getSlope();
+					falling = false;
+					// If the speed is above a minimum
+					if (test >= 1) {
+						// Seems good
+						System.out.println("steep slope");
+						moveSpeed = test;
+					}
+					// If the speed is not above a minimum use the minimum
+					else if (!dontChangeMoveSpeedTest) {
+						System.out.println("very steep slope");
+						moveSpeed = -1;
+					}
+				}
+			}
+			// These are downward slopes
+			// Need to work out what to do here.
+			// I think the reverse of this on right slopes stops movement.
+			// It is possible this is wrong for right slopes as well.
+			else if (angleInDegrees < 0) {
+				System.out.println("angle < -45");
+				if (left) {
+					moveSpeed = 0;
+					// GameState.xOffset += moveSpeed;
+				}
+			}
+		}
+		// Revert values
+		hitBoxLeft.x = tempx;
+		hitBoxLeft.y = tempy;
+
+		// End of left collision
+
+	}
+
+	private void rightHitBoxCode(ArrayList<CollisionLine> cL, int i, double leftX, double currentY,
+			double angleInDegrees) {
+		// ------------------------------------------------------------------------------------------------------
+		// | RIGHT HIT BOX |
+		// ------------------------------------------------------------------------------------------------------
+		tempx = hitBoxRight.x;
+		tempy = hitBoxRight.y;
+		hitBoxRight.x = leftX + width - rLPadding;
+		hitBoxRight.y = currentY - height + rLPadding;
+		// Checks current line for collision
+		if (cL.get(i).intersects(hitBoxRight)) {
+			System.out.println("in hitbox right");
+
+			// -90 degrees for upward wall
+			// 0 for floor
+			// negative for upward slope
+			// positive for downward slope
+
+			// If this is a wall (you can also use (id == 0) here instead)
+			if (angleInDegrees == -90) {
+				System.out.println("wall");
+				// The no left is only important for keyboards or
+				// controllers that can hit left and right at the same time
+				// If they do that without the check they can move too fast in
+				// the wrong direction
+				if ((right) && (!left)) {
+					System.out.println("movespeed: " + moveSpeed);
+					jumping = false;
+					falling = false;
+					// Move up the wall
+					GameState.yOffset--;
+					// Counteracts right movement
+					moveSpeed = 0;
+					dontChangeMoveSpeedTest = true;
+					// GameState.xOffset -= moveSpeed;
+					wallClingRight = true;
+					// Sets which wall is clung to
+					clungWall = i;
+					wallFallSpeed = 0.1;
+					// collided = true;
+				}
+			}
+			// if this is a very steep slope
+			else if (angleInDegrees < -45) {
+				System.out.println("angle < -45");
+				if (right) {
+					moveSpeed = 1;
+				}
+			}
+			// else if it is an upward slope
+			else if (angleInDegrees < 0) {
+				if ((right) && (!dontChangeMoveSpeedTest)) {
+					// Move slower up slopes (Need to check if recent
+					// changes have broken this)
+					double test = moveSpeed + 2 * cL.get(i).getSlope();
+					falling = false;
+					// If the speed is above a minimum
+					if (test >= 1) {
+						// Seems good
+						System.out.println("steep slope");
+						moveSpeed = test;
+					}
+					// If the speed is not above a minimum use the minimum
+					else if (!dontChangeMoveSpeedTest) {
+						System.out.println("very steep slope");
+						moveSpeed = 1;
+					}
+				}
+			}
+
+			// If this is the back of a downward slope
+			// This should pretty much never happen, but it could happen
+			// for downward angled roofs
+			else if (angleInDegrees > 0) {
+				System.out.println(">0");
+				if (right) {
+					// This may be too harsh to stop movement completely
+					// Although the chance of this happening instead of topCollision
+					// should be very low. It is probably ok because Only stalactites or
+					// similar shapes should cause this to happen and you will resume
+					// normal movement after falling below the tip
+					moveSpeed = 0;
+				}
+			}
+		}
+		// Revert values
+		hitBoxRight.x = tempx;
+		hitBoxRight.y = tempy;
+		// End of right collision
 
 	}
 
@@ -903,4 +916,5 @@ public class Player {
 		}
 		}
 	}
+
 }
