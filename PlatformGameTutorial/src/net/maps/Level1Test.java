@@ -15,8 +15,8 @@ public class Level1Test {
 	public static BufferedImage map;
 
 	public int x, y;
-	public int width = 1730;
-	public int height = 1218;
+	public int width = 2240;
+	public int height = 1484;
 
 	public Level1Test (int x, int y) {
 		this.x = x;
