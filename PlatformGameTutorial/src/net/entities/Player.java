@@ -27,6 +27,7 @@ public class Player {
 
 	// Movement
 	private double moveSpeed = 5;
+	private double currentMoveSpeed = 5;
 	private int facing = 0;
 	// Directional booleans
 	private boolean right, left, down, jumping, falling, wallClingRight, wallClingLeft, wallJumpFromRight,
@@ -163,7 +164,7 @@ public class Player {
 		checkLineCollisions(leftX, currentY, cL);
 
 		// Reset booleans
-		dontChangeMoveSpeedTest = false;
+		//dontChangeMoveSpeedTest = false;
 		bottomCollision = false;
 
 		// Replaces the previous frames offsets with this one before moving this
@@ -250,31 +251,31 @@ public class Player {
 		for (int i = 0; i < cL.size(); i++) {
 			// Obtain slope of the line. Java doesn't care if it is undefined or NaN
 			// Therefore this does not need special checks for those here
-			double xx = leftX + (width / 2);
-			double yy = cL.get(i).getSlope() * xx + cL.get(i).getYIntercept();
+
 
 			double angleInDegrees = cL.get(i).getAngle();
 
 			switch (cL.get(i).getID()) {
 			case WALL: {
+
 				rightHitBoxCode(cL, i, leftX, currentY, angleInDegrees, true, false);
 				leftHitBoxCode(cL, i, leftX, currentY, angleInDegrees, true, false);
 				break;
 			}
 			case FLOOR: {
-				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy, 0);
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, 0);
 				break;
 			}
 			case SEMISOLIDFLOOR: {
-				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy, 2);
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, 2);
 				break;
 			}
 			case DOWNWARDSLOPE: {
-				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy, 0);
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, 0);
 				break;
 			}
 			case UPWARDSLOPE: {
-				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, yy, 1);
+				bottomHitBoxCode(cL, i, leftX, currentY, angleInDegrees, 1);
 				break;
 			}
 			case CEILING: {
@@ -342,13 +343,20 @@ public class Player {
 	}
 
 	private void bottomHitBoxCode(ArrayList<CollisionLine> cL, int i, double leftX, double currentY,
-			double angleInDegrees, double yy, int type) {
+			double angleInDegrees, int type) {
 		// ------------------------------------------------------------------------------------------------------
 		// | BOTTOM HIT BOX |
 		// ------------------------------------------------------------------------------------------------------
 
 		//Skip collision check if this is a floor that you are currently dropping through
 		if (!(i == dropFloor && dropping)) {
+
+			//This is the midway point of the player sprite
+			double xx = leftX + (width / 2);
+			//This is the y intercept of the sprite and the current line
+			double yy = cL.get(i).getSlope() * xx + cL.get(i).getYIntercept();
+
+
 			// Bottom collision
 			// Moves the hitBox temporarily so it can check for collisions
 			tempx = hitBoxBottom.x;
@@ -426,8 +434,8 @@ public class Player {
 		// ------------------------------------------------------------------------------------------------------
 
 		// Left collision
-		// This is being worked on. |
-		// Can phase through walls if slopes are like this: \
+
+
 
 		// Moves the hitBox temporarily so it can check for collisions
 		tempx = hitBoxLeft.x;
@@ -446,38 +454,95 @@ public class Player {
 
 			// If this is a wall (you can also use (id == 0) here instead)
 			if (wall) {
-				System.out.println("wall");
+
+				//TODO
+				//This is the midway point of the player sprite
+				//This may need to be related to offset to get anything to work here
+				GameState.yOffset--;
+				//double yy = (currentY + (height / 2));
+				//This is the x intercept of the sprite and the current line?
+				//y = mx + b
+				//y - b = mx
+				//x = (y-b)/m
+				double xx = ((currentY - 1 - (height/2)) - cL.get(i).getYIntercept()) / cL.get(i).getSlope();
+
+				System.out.println("x1,y1: " + (cL.get(i).getX1()) + "," + (cL.get(i).getY1()));
+				System.out.println("x2,y2: " + (cL.get(i).getX2()) + "," + (cL.get(i).getY2()));
+				System.out.println("x1,y1: " + (GameState.xOffset - cL.get(i).getX1()) + "," + (GameState.yOffset - cL.get(i).getY1()));
+				System.out.println("x2,y2: " + (GameState.xOffset - cL.get(i).getX2()) + "," + (GameState.yOffset - cL.get(i).getY2()));
+				System.out.println("slope: " + (cL.get(i).getSlope()));
+				System.out.println("y intercept: " + (cL.get(i).getYIntercept()));
+				//leftX is where the player is.
+				System.out.println("Left x: " + leftX);
+				//currentY is also where the player is.
+				System.out.println("current y: " + currentY);
+				//System.out.println("yy: " + yy);
+				System.out.println("xx: " + xx);
+				//neither of these values look to matter
+				//always 300
+				//System.out.println("x: " + x);
+				//always 183
+				//System.out.println("y: " + y);
+				System.out.println("yOffset: " + GameState.yOffset);
+				System.out.println("xOffset: " + GameState.xOffset);
+				//System.out.println("slope: " + cL.get(i).getSlope());
+				//System.out.println("intercept: " + cL.get(i).getXIntercept());
+
+
+				//System.out.println("y value: " + y);
+				//System.out.println("x intercept value: " + xx);
+
 				// The no left is only important for keyboards or
 				// controllers that can hit left and right at the same time
 				// If they do that without the check they can move too fast in
 				// the wrong direction
 				if ((left) && (!right)) {
-					System.out.println("movespeed: " + moveSpeed);
+
+					if (cL.get(i).x1 != cL.get(i).x2)
+					{
+						//TODO
+						//Still working on this
+						if (cL.get(i).getSlope() < 0)
+						{
+							//System.out.println("Starting at: " + (GameState.xOffset));
+							System.out.println("Changing too: " + (GameState.xOffset + (leftX - xx)));
+							GameState.xOffset += (leftX - xx) + 1;
+						}
+					}
+
+					System.out.println("movespeed: " + currentMoveSpeed);
 					jumping = false;
 					falling = false;
 					// Move up the wall
-					GameState.yOffset--;
+					//GameState.yOffset--;
+
+
+
+
+
+
 					// Counteracts right movement
 					// GameState.xOffset += moveSpeed;
-					moveSpeed = 0;
+					currentMoveSpeed = 0;
 					wallClingLeft = true;
-					dontChangeMoveSpeedTest = true;
+					//dontChangeMoveSpeedTest = true;
 					// Sets which wall is clung to
 					clungWall = i;
 					wallFallSpeed = 0.1;
 					// collided = true;
 				}
 			} else if (ceiling) {
+				GameState.yOffset++;
 				// The no left is only important for keyboards or
 				// controllers that can hit left and right at the same time
 				// If they do that without the check they can move too fast in
 				// the wrong direction
 				if ((left) && (!right)) {
-					System.out.println("movespeed: " + moveSpeed);
+					System.out.println("movespeed: " + currentMoveSpeed);
 					jumping = false;
 					falling = true;
 					// Counteracts right movement
-					moveSpeed = 0;
+					currentMoveSpeed = 0;
 				}
 			}
 		}
@@ -500,6 +565,7 @@ public class Player {
 		hitBoxRight.y = currentY - height + rLPadding;
 		// Checks current line for collision
 		if (cL.get(i).intersects(hitBoxRight)) {
+
 			System.out.println("in hitbox right");
 
 			// -90 degrees for upward wall
@@ -514,14 +580,14 @@ public class Player {
 				// If they do that without the check they can move too fast in
 				// the wrong direction
 				if ((right) && (!left)) {
-					System.out.println("movespeed: " + moveSpeed);
+					System.out.println("movespeed: " + currentMoveSpeed);
 					jumping = false;
 					falling = false;
 					// Move up the wall
 					GameState.yOffset--;
 					// Counteracts right movement
-					moveSpeed = 0;
-					dontChangeMoveSpeedTest = true;
+					currentMoveSpeed = 0;
+					//dontChangeMoveSpeedTest = true;
 					// GameState.xOffset -= moveSpeed;
 					wallClingRight = true;
 					// Sets which wall is clung to
@@ -535,11 +601,11 @@ public class Player {
 				// If they do that without the check they can move too fast in
 				// the wrong direction
 				if ((right) && (!left)) {
-					System.out.println("movespeed: " + moveSpeed);
+					System.out.println("movespeed: " + currentMoveSpeed);
 					jumping = false;
 					falling = true;
 					// Counteracts right movement
-					moveSpeed = 0;
+					currentMoveSpeed = 0;
 				}
 			}
 		}
@@ -584,18 +650,18 @@ public class Player {
 		if ((right) && (!wallJumpFromLeft || !wallJumpFromRight)) {
 
 			// Simply move to the right
-			GameState.xOffset += moveSpeed;
+			GameState.xOffset += currentMoveSpeed;
 
 			// revert moveSpeed in case of slopes or speed change
-			moveSpeed = 5;
+			currentMoveSpeed = moveSpeed;
 		}
 		// If you are moving left and not in a wallJump
 		if ((left) && (!wallJumpFromLeft || !wallJumpFromRight)) {
 
 			// Simply move to the left
-			GameState.xOffset -= moveSpeed;
+			GameState.xOffset -= currentMoveSpeed;
 			// revert moveSpeed in case of slopes or speed change
-			moveSpeed = 5;
+			currentMoveSpeed = moveSpeed;
 		}
 
 		// If you are falling
@@ -868,4 +934,5 @@ public class Player {
 		}
 		}
 	}
+
 }
