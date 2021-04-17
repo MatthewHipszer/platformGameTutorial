@@ -1,8 +1,15 @@
 package net.entities;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.TextArea;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 
 import net.codejava.GamePanel;
 import net.gameState.GameState;
@@ -34,6 +41,15 @@ public class Player {
 			wallJumpFromLeft,
 			// Misc. booleans
 			dropable, dontChangeMoveSpeedTest, bottomCollision, attacking, dropping = false;
+
+	//Dialogue stuff
+	private boolean dialogueOpen = false;
+	private int dialogueValue = 0;
+	private BufferedImage dialogueBoxImg;
+	//private Node dialogueBox;
+	private String dialogue;
+	private String[] dialoguePieces;
+	private int dialogueMargin = 20;
 
 	private double jumpSpeed = 5;
 	private double currentJumpSpeed = jumpSpeed;
@@ -146,6 +162,15 @@ public class Player {
 				"/blocks/attackAnimationsTest2.png");
 		currentPlayerAnimation = 0;
 
+
+		//Dialoge box
+		try {
+			dialogueBoxImg = ImageIO.read(getClass().getResourceAsStream("/textboxes/dialogueBox.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
 		// Display values once for checking stuff purposes
 		System.out.println("x: " + x);
 		System.out.println("y: " + y);
@@ -223,6 +248,8 @@ public class Player {
 			System.out.println("attackTime: " + attackTime);
 			System.out.println("frame: " + attackAnimations[0].getFrame());
 			System.out.println("currentAnimation: " + currentPlayerAnimation);
+
+
 		}
 
 		// Draw the current animation
@@ -237,6 +264,16 @@ public class Player {
 		attackBoxRight.draw(g);
 		attackBoxLeft.draw(g);
 		attackBoxJump.draw(g);
+
+		if (dialogueOpen)
+		{
+
+			//TODO
+			g.drawImage(dialogueBoxImg, 150, 400, dialogueBoxImg.getWidth(), dialogueBoxImg.getHeight(), null);
+			g.setColor(Color.BLACK);
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 36));
+			g.drawString(dialogue, 150 + dialogueMargin, 400 + (dialogueMargin * 2));
+		}
 
 	}
 
@@ -257,7 +294,9 @@ public class Player {
 
 			switch (cL.get(i).getID()) {
 			case WALL: {
-
+				//You will need something like this if you want climbable over arching walls.
+				//Still of the opinion that I probably don't want these though...
+				//topHitBoxCode(cL, i, leftX, currentY);
 				rightHitBoxCode(cL, i, leftX, currentY, angleInDegrees, true, false);
 				leftHitBoxCode(cL, i, leftX, currentY, angleInDegrees, true, false);
 				break;
@@ -491,6 +530,12 @@ public class Player {
 
 				//System.out.println("y value: " + y);
 				//System.out.println("x intercept value: " + xx);
+
+
+
+				//Maybe only allow collision code using the middle height of the player if
+				//the player has jumped or wall clung or something.
+
 
 				// The no left is only important for keyboards or
 				// controllers that can hit left and right at the same time
@@ -771,8 +816,35 @@ public class Player {
 
 	}
 
+	//Creates a dialogue box using the dialogue that is sent to it.
+	//TODO add word wrapping
+	private void createDialogue(String dialogueStr)
+    {
+    	dialogueOpen = true;
+    	dialogueValue = 0;
+    	dialoguePieces = dialogueStr.split("~");
+    	dialogue = dialoguePieces[dialogueValue];
+    	//dialogue.setWrappingWidth(600);
+    }
+
+	//Advances the dialogue if there is still more dialogue.
+	//Otherwise it ends the dialogue.
+	//TODO Also needs word wrapping
+    private void advanceDialogue()
+    {
+    	if (++dialogueValue < dialoguePieces.length)
+    	{
+    		dialogue = dialoguePieces[dialogueValue];
+    	}
+    	else
+    	{
+    		dialogueOpen = false;
+    	}
+    }
+
 	// Key listener
 	public void keyPressed(int k) {
+
 		if (k == KeyEvent.VK_J) {
 			if (attackTime == 36) {
 				System.out.println("Play animation");
@@ -806,6 +878,16 @@ public class Player {
 		}
 		if (k == KeyEvent.VK_S) {
 			down = true;
+		}
+		if (k == KeyEvent.VK_L) {
+			if (!dialogueOpen)
+			{
+				createDialogue("Testing this ~Testing this again.");
+			}
+			else
+			{
+				advanceDialogue();
+			}
 		}
 		// Wall jump code
 		if (k == KeyEvent.VK_SPACE && !jumping && !falling) {
@@ -934,5 +1016,4 @@ public class Player {
 		}
 		}
 	}
-
 }
