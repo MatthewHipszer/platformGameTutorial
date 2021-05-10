@@ -1,16 +1,10 @@
 package net.entities;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.TextArea;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
-
+import net.maps.Dialogue;
 import net.codejava.GamePanel;
 import net.gameState.GameState;
 import net.maps.Map.LineType;
@@ -41,15 +35,6 @@ public class Player {
 			wallJumpFromLeft,
 			// Misc. booleans
 			dropable, dontChangeMoveSpeedTest, bottomCollision, attacking, dropping = false;
-
-	//Dialogue stuff
-	private boolean dialogueOpen = false;
-	private int dialogueValue = 0;
-	private BufferedImage dialogueBoxImg;
-	//private Node dialogueBox;
-	private String dialogue;
-	private String[] dialoguePieces;
-	private int dialogueMargin = 20;
 
 	private double jumpSpeed = 5;
 	private double currentJumpSpeed = jumpSpeed;
@@ -163,12 +148,7 @@ public class Player {
 		currentPlayerAnimation = 0;
 
 
-		//Dialoge box
-		try {
-			dialogueBoxImg = ImageIO.read(getClass().getResourceAsStream("/textboxes/dialogueBox.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
 
 
 		// Display values once for checking stuff purposes
@@ -264,17 +244,6 @@ public class Player {
 		attackBoxRight.draw(g);
 		attackBoxLeft.draw(g);
 		attackBoxJump.draw(g);
-
-		if (dialogueOpen)
-		{
-
-			//TODO
-			g.drawImage(dialogueBoxImg, 150, 400, dialogueBoxImg.getWidth(), dialogueBoxImg.getHeight(), null);
-			g.setColor(Color.BLACK);
-			g.setFont(new Font("TimesRoman", Font.PLAIN, 36));
-			g.drawString(dialogue, 150 + dialogueMargin, 400 + (dialogueMargin * 2));
-		}
-
 	}
 
 	private void checkLineCollisions(double leftX, double currentY, ArrayList<CollisionLine> cL) {
@@ -816,31 +785,6 @@ public class Player {
 
 	}
 
-	//Creates a dialogue box using the dialogue that is sent to it.
-	//TODO add word wrapping
-	private void createDialogue(String dialogueStr)
-    {
-    	dialogueOpen = true;
-    	dialogueValue = 0;
-    	dialoguePieces = dialogueStr.split("~");
-    	dialogue = dialoguePieces[dialogueValue];
-    	//dialogue.setWrappingWidth(600);
-    }
-
-	//Advances the dialogue if there is still more dialogue.
-	//Otherwise it ends the dialogue.
-	//TODO Also needs word wrapping
-    private void advanceDialogue()
-    {
-    	if (++dialogueValue < dialoguePieces.length)
-    	{
-    		dialogue = dialoguePieces[dialogueValue];
-    	}
-    	else
-    	{
-    		dialogueOpen = false;
-    	}
-    }
 
 	// Key listener
 	public void keyPressed(int k) {
@@ -880,13 +824,17 @@ public class Player {
 			down = true;
 		}
 		if (k == KeyEvent.VK_L) {
-			if (!dialogueOpen)
+			System.out.println("Dialogue: " + Dialogue.dialogueOpen);
+			if (!Dialogue.dialogueOpen)
 			{
-				createDialogue("Testing this ~Testing this again.");
+				Dialogue.createDialogue("This is a test string. Just testing stuff.~Still testing stuff.");
+				System.out.println(Dialogue.x);
+				//createDialogue("Testing this ~Testing this again with a much longer string to see if the words wrap correctly.");
 			}
 			else
 			{
-				advanceDialogue();
+				Dialogue.advanceDialogue();
+				//advanceDialogue();
 			}
 		}
 		// Wall jump code
@@ -1016,4 +964,5 @@ public class Player {
 		}
 		}
 	}
+
 }
